@@ -85,7 +85,7 @@ export default class CreateGpgKeyPage {
    * Returns the secondary action link element
    */
   get secondaryActionLink() {
-    return this._page.container.querySelector('.form-actions a');
+    return this._page.container.querySelector('.form-actions button.link');
   }
 
   /**
@@ -124,6 +124,13 @@ export default class CreateGpgKeyPage {
   }
 
   /**
+   * Returns true if the current passphrase is empty
+   */
+  get isEmptyPassphrase() {
+    return Boolean(this._page.container.querySelector('.complexity-text').textContent.startsWith('Quality'));
+  }
+
+  /**
    * Returns true if one is processing
    */
   get isProcessing() {
@@ -151,13 +158,29 @@ export default class CreateGpgKeyPage {
     return Boolean(this._page.container.querySelector('#import-key-link'));
   }
 
+
+  /**
+   * Returns the list item concerning the 'not in dictionnary" hints
+   */
+  get notInDictionaryHint() {
+    return this._page.container.querySelectorAll(".password-hints li")[4];
+  }
+
+  /**
+   * Returns the tooltip for service unavailable for powned password
+   */
+  get tootltip() {
+    return this._page.container.querySelector(".password-hints .unavailable .tooltip .tooltip-text");
+  }
+
   /**
    * Change the passphrase input value
    * @param passphrase The new passphrase
    */
   async fill(passphrase) {
     fireEvent.change(this.passphraseInput, {target: {value: passphrase}});
-    await waitFor(async() => {});
+    jest.runAllTimers();
+    await waitFor(() => {});
   }
 
   /**

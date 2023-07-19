@@ -16,7 +16,7 @@
 
 import {fireEvent, render, waitFor} from "@testing-library/react";
 import React from "react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import {BrowserRouter as Router} from "react-router-dom";
 import {UserWorkspaceContext} from "../../../contexts/UserWorkspaceContext";
 import DisplayUserDetailsPublicKey from "./DisplayUserDetailsPublicKey";
@@ -84,7 +84,7 @@ export default class DisplayUserDetailsPublicKeyPage {
    * Toggle the collapse / expand component hbehavior
    */
   async toggleCollapse() {
-    const element = this._page.container.querySelector('a');
+    const element = this._page.container.querySelector('button');
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -94,7 +94,7 @@ export default class DisplayUserDetailsPublicKeyPage {
    * Copy the user public key
    */
   async copyPublicKey() {
-    const element = this._page.container.querySelector('.button.copy-public-key');
+    const element = this._page.container.querySelector('button.copy-public-key');
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});

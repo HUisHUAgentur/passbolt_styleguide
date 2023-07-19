@@ -16,7 +16,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import {withResourceWorkspace} from "../../../contexts/ResourceWorkspaceContext";
 import {withDialog} from "../../../contexts/DialogContext";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import DialogWrapper from "../../Common/Dialog/DialogWrapper/DialogWrapper";
 import FormSubmitButton from "../../Common/Inputs/FormSubmitButton/FormSubmitButton";
 import FormCancelButton from "../../Common/Inputs/FormSubmitButton/FormCancelButton";
@@ -169,6 +169,13 @@ class ExportResources extends React.Component {
       {label: "csv (keepass / keepassx)", value: "csv-kdbx"},
       {label: "csv (lastpass)", value: "csv-lastpass"},
       {label: "csv (1password)", value: "csv-1password"},
+      {label: "csv (chromium based browsers)", value: "csv-chromium"},
+      {label: "csv (bitwarden)", value: "csv-bitwarden"},
+      {label: "csv (mozilla)", value: "csv-mozilla"},
+      {label: "csv (safari)", value: "csv-safari"},
+      {label: "csv (dashlane)", value: "csv-dashlane"},
+      {label: "csv (nordpass)", value: "csv-nordpass"},
+      {label: "csv (logmeonce)", value: "csv-logmeonce"}
     ];
   }
 

@@ -16,18 +16,28 @@ import React from 'react';
 import {Route, withRouter} from "react-router-dom";
 import Logo from "../../Common/Navigation/Header/Logo";
 import DisplayUserBadgeMenu from "../../User/DisplayUserBadgeMenu/DisplayUserBadgeMenu";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import NavigateIntoUserSettingsWorkspace from "../NavigateIntoUserSettingsWorkspace/NavigateIntoUserSettingsWorkspace";
 import DisplayUserSettingsWorkspaceBreadcrumb
   from "../DisplayUserSettingsWorkspaceBreadcrumb/DisplayUserSettingsWorkspaceBreadcrumb";
 import DisplayUserMfa from "../DisplayUserMfa/DisplayUserMfa";
 import PropTypes from "prop-types";
 import SearchBar from "../../Common/Navigation/Search/SearchBar";
+import {withMfa} from '../../../contexts/MFAContext';
+import DisplayUserMfaProvider from '../DisplayUserMfa/DisplayUserMfaProvider';
 
 /**
  * This component is a container for all the user settings workspace features
  */
 class DisplayApiUserSettingsWorkspace extends React.Component {
+  /**
+   * Return if user has to define mfa.
+   * @returns {bool}
+   */
+  get isMfaChoiceRequired() {
+    return this.props.mfaContext.isMfaChoiceRequired();
+  }
+
   /**
    * Render the component
    * @return {JSX}
@@ -44,11 +54,12 @@ class DisplayApiUserSettingsWorkspace extends React.Component {
         </div>
         <div className="panel main">
           <div className="panel left">
-            <NavigateIntoUserSettingsWorkspace/>
+            <NavigateIntoUserSettingsWorkspace hasPendingMfaChoice={this.isMfaChoiceRequired}/>
           </div>
           <div className="panel middle">
             <DisplayUserSettingsWorkspaceBreadcrumb/>
-            <Route path="/app/settings/mfa" component={DisplayUserMfa}></Route>
+            <Route exact path="/app/settings/mfa/:provider" component={DisplayUserMfaProvider}></Route>
+            <Route exact path="/app/settings/mfa" component={DisplayUserMfa}></Route>
           </div>
         </div>
       </div>
@@ -58,6 +69,7 @@ class DisplayApiUserSettingsWorkspace extends React.Component {
 
 DisplayApiUserSettingsWorkspace.propTypes = {
   context: PropTypes.any, // The application context provider
+  mfaContext: PropTypes.object
 };
 
-export default withRouter(withAppContext(DisplayApiUserSettingsWorkspace));
+export default withRouter(withAppContext(withMfa(DisplayApiUserSettingsWorkspace)));

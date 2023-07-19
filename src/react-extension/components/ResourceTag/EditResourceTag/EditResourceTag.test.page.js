@@ -12,7 +12,7 @@
  * @since         2.11.0
  */
 import {fireEvent, render, waitFor} from "@testing-library/react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import React from "react";
 import ManageDialogs from "../../Common/Dialog/ManageDialogs/ManageDialogs";
 import DialogContextProvider from "../../../contexts/DialogContext";
@@ -155,6 +155,13 @@ class TagEditPageObject {
   }
 
   /**
+   * Returns the name warning mesage input element
+   */
+  get nameWarningMessage() {
+    return this._container.querySelector('.name.warning-message');
+  }
+
+  /**
    * Returns true if the page object exists in the container
    */
   exists() {
@@ -185,5 +192,10 @@ class TagEditPageObject {
   fillInput(element, data)  {
     const dataInputEvent = {target: {value: data}};
     fireEvent.change(element, dataInputEvent);
+  }
+
+  /** on keypup element */
+  keyUpInput(component)  {
+    fireEvent.keyUp(component, {keyCode: 38});
   }
 }

@@ -13,7 +13,7 @@
  */
 import React from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withDialog} from "../../../contexts/DialogContext";
 import ContextualMenuWrapper from "../../Common/ContextualMenu/ContextualMenuWrapper";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
@@ -24,8 +24,8 @@ import DeleteUser from "../DeleteUser/DeleteUser";
 import NotifyError from "../../Common/Error/NotifyError/NotifyError";
 import {Trans, withTranslation} from "react-i18next";
 import {withWorkflow} from "../../../contexts/WorkflowContext";
-import HandleReviewAccountRecoveryRequestWorkflow
-  from "../../AccountRecovery/HandleReviewAccountRecoveryRequestWorkflow/HandleReviewAccountRecoveryRequestWorkflow";
+import HandleReviewAccountRecoveryRequestWorkflow from "../../AccountRecovery/HandleReviewAccountRecoveryRequestWorkflow/HandleReviewAccountRecoveryRequestWorkflow";
+import ClipBoard from '../../../../shared/lib/Browser/clipBoard';
 
 class DisplayUsersContextualMenu extends React.Component {
   /**
@@ -93,7 +93,7 @@ class DisplayUsersContextualMenu extends React.Component {
   async handlePermalinkCopy() {
     const baseUrl = this.props.context.userSettings.getTrustedDomain();
     const permalink = `${baseUrl}/app/users/view/${this.user.id}`;
-    await this.props.context.port.request("passbolt.clipboard.copy", permalink);
+    await ClipBoard.copy(permalink, this.props.context.port);
     this.props.actionFeedbackContext.displaySuccess(this.translate("The permalink has been copied to clipboard"));
     this.props.hide();
   }
@@ -103,7 +103,7 @@ class DisplayUsersContextualMenu extends React.Component {
    */
   async handleUsernameCopy() {
     const username = `${this.user.username}`;
-    await this.props.context.port.request("passbolt.clipboard.copy", username);
+    await ClipBoard.copy(username, this.props.context.port);
     this.props.actionFeedbackContext.displaySuccess(this.translate("The email has been copied to clipboard"));
     this.props.hide();
   }
@@ -113,7 +113,7 @@ class DisplayUsersContextualMenu extends React.Component {
    */
   async handlePublicKeyCopy() {
     const gpgkeyInfo = await this.props.context.port.request('passbolt.keyring.get-public-key-info-by-user', this.user.id);
-    await this.props.context.port.request("passbolt.clipboard.copy", gpgkeyInfo.armored_key);
+    await ClipBoard.copy(gpgkeyInfo.armored_key, this.props.context.port);
     this.props.actionFeedbackContext.displaySuccess(this.translate("The public key has been copied to clipboard"));
     this.props.hide();
   }
@@ -321,9 +321,9 @@ class DisplayUsersContextualMenu extends React.Component {
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a onClick={this.handlePermalinkCopy}>
+                <button className="link no-border" type="button"  onClick={this.handlePermalinkCopy}>
                   <span><Trans>Copy permalink</Trans></span>
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -334,11 +334,12 @@ class DisplayUsersContextualMenu extends React.Component {
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a
+                <button type="button"
                   onClick={this.handlePublicKeyCopy}
-                  className={this.canCopyPublicKey() ? '' : 'disabled'}>
+                  disabled={!this.canCopyPublicKey()}
+                  className="link no-border">
                   <span><Trans>Copy public key</Trans></span>
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -349,9 +350,9 @@ class DisplayUsersContextualMenu extends React.Component {
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a onClick={this.handleUsernameCopy}>
+                <button className="link no-border" type="button"  onClick={this.handleUsernameCopy}>
                   <span><Trans>Copy email address</Trans></span>
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -361,7 +362,7 @@ class DisplayUsersContextualMenu extends React.Component {
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a id="edit" onClick={this.handleEditClickEvent}><span><Trans>Edit</Trans></span></a>
+                <button className="link no-border" type="button"  id="edit" onClick={this.handleEditClickEvent}><span><Trans>Edit</Trans></span></button>
               </div>
             </div>
           </div>
@@ -372,9 +373,10 @@ class DisplayUsersContextualMenu extends React.Component {
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a id="resend"
+                <button type="button"  id="resend"
                   onClick={this.handleResendInviteClickEvent}
-                  className={`${this.canResendInviteToUser ? "" : "disabled"}`}><span><Trans>Resend invite</Trans></span></a>
+                  disabled={!this.canResendInviteToUser}
+                  className="link no-border"><span><Trans>Resend invite</Trans></span></button>
               </div>
             </div>
           </div>
@@ -385,12 +387,13 @@ class DisplayUsersContextualMenu extends React.Component {
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a
+                <button type="button"
                   id="disable-mfa"
                   onClick={this.handleDisableMfaEvent}
-                  className={this.canDisableMfaForUser ? '' : 'disabled'}>
+                  disabled={!this.canDisableMfaForUser}
+                  className="link no-border">
                   <span><Trans>Disable MFA</Trans></span>
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -401,7 +404,7 @@ class DisplayUsersContextualMenu extends React.Component {
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a id="delete" onClick={this.handleDeleteClickEvent} className={`${!this.canDeleteUser() ? "disabled" : ""}`}><span><Trans>Delete</Trans></span></a>
+                <button type="button"  id="delete" onClick={this.handleDeleteClickEvent} disabled={!this.canDeleteUser()} className="link no-border"><span><Trans>Delete</Trans></span></button>
               </div>
             </div>
           </div>
@@ -412,7 +415,7 @@ class DisplayUsersContextualMenu extends React.Component {
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a id="review-recovery" onClick={this.handleReviewRecoveryRequestClickEvent} className={`${!this.hasPendingAccountRecoveryRequest() ? "disabled" : ""}`}><span><Trans>Review recovery request</Trans></span></a>
+                <button type="button"  id="review-recovery" onClick={this.handleReviewRecoveryRequestClickEvent} disabled={!this.hasPendingAccountRecoveryRequest()} className="link no-border"><span><Trans>Review recovery request</Trans></span></button>
               </div>
             </div>
           </div>

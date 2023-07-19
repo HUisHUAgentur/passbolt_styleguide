@@ -15,7 +15,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import {withRouter, Route} from "react-router-dom";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import Icon from "../../../../shared/components/Icons/Icon";
 import {withDialog} from "../../../contexts/DialogContext";
 import EditUserProfile from "../EditUserProfile/EditUserProfile";
@@ -76,30 +76,33 @@ class DisplayUserSettingsWorkspaceActions extends React.Component {
           <ul className="ready">
             <Route path={`${path}/profile`}>
               <li>
-                <a
-                  className="button ready"
+                <button
+                  type="button"
+                  className="ready"
                   onClick={this.handleEdit}>
                   <Icon name="edit"/>
                   <span><Trans>Edit</Trans></span>
-                </a>
+                </button>
               </li>
             </Route>
             <Route path={`${path}/keys`}>
               <li>
-                <a
-                  className="button ready"
+                <button
+                  type="button"
+                  className="ready"
                   onClick={this.handleDownloadPublicKey}>
                   <Icon name="download"/>
                   <span><Trans>Public</Trans></span>
-                </a>
+                </button>
               </li>
               <li>
-                <a
-                  className="button ready"
+                <button
+                  type="button"
+                  className="ready"
                   onClick={this.handleDownloadPrivateKey}>
                   <Icon name="download"/>
                   <span><Trans>Private</Trans></span>
-                </a>
+                </button>
               </li>
             </Route>
           </ul>

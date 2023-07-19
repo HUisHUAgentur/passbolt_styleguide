@@ -1,4 +1,3 @@
-
 /**
  * Passbolt ~ Open source password manager for teams
  * Copyright (c) 2020 Passbolt SA (https://www.passbolt.com)
@@ -16,7 +15,7 @@
 
 import {fireEvent, render, waitFor} from "@testing-library/react";
 import React from "react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import {BrowserRouter as Router} from "react-router-dom";
 import DisplayUsersContextualMenu from "./DisplayUsersContextualMenu";
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
@@ -74,7 +73,7 @@ export default class DisplayUsersContextualMenuPage {
    * Copy the selected user permalink
    */
   async copyPermalink() {
-    const element = this._page.container.querySelectorAll('li a')[0];
+    const element = this._page.container.querySelectorAll('li button.link')[0];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -84,7 +83,7 @@ export default class DisplayUsersContextualMenuPage {
    * Copy the selected user public key
    */
   async copyPublicKey() {
-    const element = this._page.container.querySelectorAll('li a')[1];
+    const element = this._page.container.querySelectorAll('li button.link')[1];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -94,7 +93,7 @@ export default class DisplayUsersContextualMenuPage {
    * Copy the selected user email
    */
   async copyEmail() {
-    const element = this._page.container.querySelectorAll('li a')[2];
+    const element = this._page.container.querySelectorAll('li button.link')[2];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -104,7 +103,7 @@ export default class DisplayUsersContextualMenuPage {
    * Call to the edit an user action
    */
   async edit() {
-    const element = this._page.container.querySelectorAll('li a')[3];
+    const element = this._page.container.querySelectorAll('li button.link')[3];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -114,7 +113,7 @@ export default class DisplayUsersContextualMenuPage {
    * Call to resend an invite
    */
   async resendInvite() {
-    const element = this._page.container.querySelectorAll('li a')[4];
+    const element = this._page.container.querySelectorAll('li button.link')[4];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -124,7 +123,7 @@ export default class DisplayUsersContextualMenuPage {
    * Call to disable an user MFA
    */
   async disableMFA() {
-    const element = this._page.container.querySelectorAll('li a')[5];
+    const element = this._page.container.querySelectorAll('li button.link')[5];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -134,7 +133,7 @@ export default class DisplayUsersContextualMenuPage {
    * Call to delete an user
    */
   async delete() {
-    const element = this._page.container.querySelectorAll('li a')[6];
+    const element = this._page.container.querySelectorAll('li button.link')[6];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -144,7 +143,7 @@ export default class DisplayUsersContextualMenuPage {
    * Call to review an account recovery of a user
    */
   async reviewRecovery() {
-    const element = this._page.container.querySelectorAll('li a')[7];
+    const element = this._page.container.querySelectorAll('li button.link')[7];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});

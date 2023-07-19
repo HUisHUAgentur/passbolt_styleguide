@@ -5,7 +5,7 @@
 	  /_/    \__,_/____/____/_.___/\____/_/\__/
 
 	The open source password manager for teams
-	(c) 2021 Passbolt SA
+	(c) 2023 Passbolt SA
 
 
 License
@@ -13,7 +13,7 @@ License
 
 Passbolt - Open source password manager for teams
 
-(c) 2022 Passbolt SA
+(c) 2023 Passbolt SA
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
 Public License (AGPL) as published by the Free Software Foundation version 3.
@@ -147,27 +147,23 @@ To get started with storybook, first install its dependencies. As long as storyb
 to webpack 4, the dependencies will need to be installed manually.
 
 ```
-npm install \
-    @storybook/addon-actions \
-    @storybook/addon-essentials \
-    @storybook/addon-links \
-    @storybook/builder-webpack5 \
-    @storybook/manager-webpack5 \
-    @storybook/react \
-    @storybook/addon-docs \
-    @storybook/theming \
-    @storybook/storybook-deployer \
-    --no-save
+npm run dev:storybook:install
 ```
 
 To run Storybook, you just need to run the following command:
 
 ```
-npm run storybook
+npm run dev:storybook:start
 ```
 
 Building the related static website is possible as well using the following command:
 
 ```
-npm run build-storybook
+npm run dev:storybook:build
+```
+
+Executing the stories locally to ensure no regression was introduced can be done as following:
+
+```
+npm run test:storybook
 ```

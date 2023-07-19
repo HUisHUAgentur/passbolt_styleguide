@@ -17,7 +17,7 @@ import PropTypes from "prop-types";
 import Icon from "../../../../shared/components/Icons/Icon";
 import {Trans, withTranslation} from "react-i18next";
 import {DateTime} from "luxon";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import DisplayAdministrationAccountRecoveryActions
   from "../DisplayAdministrationWorkspaceActions/DisplayAdministrationAccountRecoveryAction/DisplayAdministrationAccountRecoveryActions";
 import {withAdministrationWorkspace} from "../../../contexts/AdministrationWorkspaceContext";
@@ -72,8 +72,14 @@ class ManageAccountRecoveryAdministrationSettings extends React.Component {
    */
   async componentDidUpdate() {
     const publicArmoredKey = this.props?.adminAccountRecoveryContext?.policyChanges?.publicKey || this.props?.adminAccountRecoveryContext?.currentPolicy?.account_recovery_organization_public_key?.armored_key;
-    if (Boolean(publicArmoredKey) && this.state.keyInfoDto?.armored_key !== publicArmoredKey) {
-      const keyInfoDto = await this.props.adminAccountRecoveryContext.getKeyInfo(publicArmoredKey);
+    const keyInfoDto = await this.props?.adminAccountRecoveryContext?.getKeyInfo(publicArmoredKey);
+    /*
+     * Formerly, we compared the armored key together to check if the key changed.
+     * This yield into a bug sometimes where the react updates in an infinite loop.
+     * The reason was that openpgpjs might produce another amored key string than the original one and the comparison failed everytime.
+     * So comparing fingerprints avoid to have this infinite refresh loop.
+     */
+    if (Boolean(publicArmoredKey) && this.state.keyInfoDto?.fingerprint !== keyInfoDto?.fingerprint) {
       this.setState({keyInfoDto});
     } else if (!publicArmoredKey && this.state.keyInfoDto) {
       this.setState({keyInfoDto: null});
@@ -274,7 +280,7 @@ class ManageAccountRecoveryAdministrationSettings extends React.Component {
           {this.props.adminAccountRecoveryContext.hasPolicyChanges() &&
             <div className="warning message" id="email-notification-setting-overridden-banner">
               <p>
-                <Trans>Warning, Don&apos;t forget to save your settings to apply your modification.</Trans>
+                <Trans>Don&apos;t forget to save your settings to apply your modification.</Trans>
               </p>
             </div>
           }
@@ -303,7 +309,7 @@ class ManageAccountRecoveryAdministrationSettings extends React.Component {
                   <span className="name"><Trans>Mandatory</Trans></span>
                   <span className="info">
                     <Trans>Every user is required to provide a copy of their private key and passphrase during setup.</Trans><br/>
-                    <Trans>Warning: You should inform your users not to store personal passwords.</Trans>
+                    <Trans>You should inform your users not to store personal passwords.</Trans>
                   </span>
                 </label>
               </div>
@@ -349,7 +355,7 @@ class ManageAccountRecoveryAdministrationSettings extends React.Component {
                   <span className="name"><Trans>Disable (Default)</Trans></span>
                   <span className="info">
                     <Trans>Backup of the private key and passphrase will not be stored. This is the safest option.</Trans>
-                    <Trans>Warning: If users lose their private key and passphrase they will not be able to recover their account.</Trans>
+                    <Trans>If users lose their private key and passphrase they will not be able to recover their account.</Trans>
                   </span>
                 </label>
               </div>

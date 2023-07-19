@@ -16,8 +16,7 @@
  * Unit tests on DisplayGridContextualMenuContextualMenu in regard of specifications
  */
 import {
-  defaultAppContext,
-  defaultProps, propsResourceOnlyRead,
+  defaultProps, propsDenyUIActions, propsResourceWithReadOnlyPermission, propsResourceWithUpdatePermission,
 } from "./DisplayResourcesListContextualMenu.test.data";
 import {ActionFeedbackContext} from "../../../contexts/ActionFeedbackContext";
 import DeleteResource from "../DeleteResource/DeleteResource";
@@ -27,64 +26,78 @@ import DisplayResourcesListContextualMenuPage from "./DisplayResourcesListContex
 
 beforeEach(() => {
   jest.resetModules();
+  let clipboardData = ''; //initalizing clipboard data so it can be used in testing
+  const mockClipboard = {
+    writeText: jest.fn(data => clipboardData = data),
+    readText: jest.fn(() => document.activeElement.value = clipboardData),
+  };
+  global.navigator.clipboard = mockClipboard;
 });
 
-describe("As LU I should see each menu", () => {
+describe("DisplayResourcesListContextualMenu", () => {
   let page; // The page to test against
-  const context = defaultAppContext(); // The applicative context
 
-  describe('As LU I should see and identify each menu for a resource', () => {
+  describe('As LU I should be able to access all the offered capabilities on resources I have owner access', () => {
     const props = defaultProps(); // The props to pass
     jest.spyOn(ActionFeedbackContext._currentValue, 'displaySuccess').mockImplementationOnce(() => {});
+
+    beforeEach(() => {
+      page = new DisplayResourcesListContextualMenuPage(props);
+    });
+
     /**
      * Given an organization with 1 resource
      * Then I should see the 7 menu
      */
-
-    beforeEach(() => {
-      page = new DisplayResourcesListContextualMenuPage(context, props);
-    });
-
     it('As LU I should see all menu name', () => {
-      expect(page.menuName(1)).toBe("Copy username");
-      expect(page.menuName(2)).toBe("Copy password");
-      expect(page.menuName(3)).toBe("Copy URI");
-      expect(page.menuName(4)).toBe("Copy permalink");
-      expect(page.menuName(5)).toBe("Open URI in a new Tab");
-      expect(page.menuName(6)).toBe("Edit");
-      expect(page.menuName(7)).toBe("Share");
-      expect(page.menuName(8)).toBe("Delete");
+      expect(page.copyUsernameItem).not.toBeNull();
+      expect(page.copyUsernameItem.hasAttribute("disabled")).toBeFalsy();
+      expect(page.copyPasswordItem).not.toBeNull();
+      expect(page.copyPasswordItem.hasAttribute("disabled")).toBeFalsy();
+      expect(page.copyUriItem).not.toBeNull();
+      expect(page.copyUriItem.hasAttribute("disabled")).toBeFalsy();
+      expect(page.copyPermalinkItem).not.toBeNull();
+      expect(page.copyPermalinkItem.hasAttribute("disabled")).toBeFalsy();
+      expect(page.openUriItem).not.toBeNull();
+      expect(page.openUriItem.hasAttribute("disabled")).toBeFalsy();
+      expect(page.editItem).not.toBeNull();
+      expect(page.editItem.hasAttribute("disabled")).toBeFalsy();
+      expect(page.shareItem).not.toBeNull();
+      expect(page.shareItem.hasAttribute("disabled")).toBeFalsy();
+      expect(page.deleteItem).not.toBeNull();
+      expect(page.deleteItem.hasAttribute("disabled")).toBeFalsy();
     });
 
     it('As LU I can start to copy the username of a resource', async() => {
-      jest.spyOn(context.port, 'request').mockImplementationOnce(() => {});
+      expect.assertions(3);
       await page.copyUsername();
-      expect(context.port.request).toHaveBeenCalledWith('passbolt.clipboard.copy', props.resource.username);
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(props.resource.username);
       expect(ActionFeedbackContext._currentValue.displaySuccess).toHaveBeenCalled();
       expect(props.hide).toHaveBeenCalled();
     });
 
     it('As LU I can start to copy the password of a resource', async() => {
-      jest.spyOn(context.port, 'request').mockImplementationOnce(() => 'secret-copy');
+      expect.assertions(4);
+      jest.spyOn(props.context.port, 'request').mockImplementationOnce(() => 'secret-copy');
       await page.copyPassword();
-      expect(context.port.request).toHaveBeenCalledWith('passbolt.secret.decrypt', props.resource.id, {showProgress: true});
-      expect(context.port.request).toHaveBeenCalledWith('passbolt.clipboard.copy', 'secret-copy');
+      expect(props.context.port.request).toHaveBeenCalledWith('passbolt.secret.decrypt', props.resource.id, {showProgress: true});
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('secret-copy');
       expect(ActionFeedbackContext._currentValue.displaySuccess).toHaveBeenCalled();
       expect(props.hide).toHaveBeenCalled();
     });
 
     it('As LU I can start to copy the uri of a resource', async() => {
-      jest.spyOn(context.port, 'request').mockImplementationOnce(() => {});
+      expect.assertions(3);
       await page.copyUri();
-      expect(context.port.request).toHaveBeenCalledWith('passbolt.clipboard.copy', props.resource.uri);
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(props.resource.uri);
       expect(ActionFeedbackContext._currentValue.displaySuccess).toHaveBeenCalled();
       expect(props.hide).toHaveBeenCalled();
     });
 
     it('As LU I can start to copy the permalink of a resource', async() => {
-      jest.spyOn(context.port, 'request').mockImplementationOnce(() => {});
+      expect.assertions(3);
       await page.copyPermalink();
-      expect(context.port.request).toHaveBeenCalledWith('passbolt.clipboard.copy',  `${context.userSettings.getTrustedDomain()}/app/passwords/view/${props.resource.id}`);
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`${props.context.userSettings.getTrustedDomain()}/app/passwords/view/${props.resource.id}`);
       expect(ActionFeedbackContext._currentValue.displaySuccess).toHaveBeenCalled();
       expect(props.hide).toHaveBeenCalled();
     });
@@ -114,26 +127,82 @@ describe("As LU I should see each menu", () => {
     });
   });
 
-  describe('As LU I should see and identify each menu disable', () => {
-    const props = propsResourceOnlyRead(); // The props to pass
-    /**
-     * Given an organization with 1 resource
-     * Then I should see 3 menu disabled
-     */
+  describe('As LU I should have limited offered capabilities on resources I have read only access', () => {
+    const props = propsResourceWithReadOnlyPermission(); // The props to pass
 
     beforeEach(() => {
-      page = new DisplayResourcesListContextualMenuPage(context, props);
+      page = new DisplayResourcesListContextualMenuPage(props);
     });
 
-    it('As LU I should see 3 menu disabled', async() => {
-      expect(page.menuItem(1).className).toBe("");
-      expect(page.menuItem(2).className).toBe("");
-      expect(page.menuItem(3).className).toBe("");
-      expect(page.menuItem(4).className).toBe("");
-      expect(page.menuItem(5).className).toBe("");
-      expect(page.menuItem(6).className).toBe("disabled");
-      expect(page.menuItem(7).className).toBe("disabled");
-      expect(page.menuItem(8).className).toBe("disabled");
+    it('As LU I should not be able to edit/share/delete a password I have read only access', async() => {
+      expect(page.copyUsernameItem).not.toBeNull();
+      expect(page.copyUsernameItem.hasAttribute("disabled")).toBeFalsy();
+      expect(page.copyPasswordItem).not.toBeNull();
+      expect(page.copyPasswordItem.hasAttribute("disabled")).toBeFalsy();
+      expect(page.copyUriItem).not.toBeNull();
+      expect(page.copyUriItem.hasAttribute("disabled")).toBeFalsy();
+      expect(page.copyPermalinkItem).not.toBeNull();
+      expect(page.copyPermalinkItem.hasAttribute("disabled")).toBeFalsy();
+      expect(page.openUriItem).not.toBeNull();
+      expect(page.openUriItem.hasAttribute("disabled")).toBeFalsy();
+      expect(page.editItem).not.toBeNull();
+      expect(page.editItem.hasAttribute("disabled")).toBeTruthy();
+      expect(page.shareItem).not.toBeNull();
+      expect(page.shareItem.hasAttribute("disabled")).toBeTruthy();
+      expect(page.deleteItem).not.toBeNull();
+      expect(page.deleteItem.hasAttribute("disabled")).toBeTruthy();
+    });
+  });
+
+  describe('As LU I should have limited offered capabilities on resources I have update access', () => {
+    const props = propsResourceWithUpdatePermission(); // The props to pass
+
+    beforeEach(() => {
+      page = new DisplayResourcesListContextualMenuPage(props);
+    });
+
+    it('As LU I should not be able to share a password I have update access', async() => {
+      expect(page.copyUsernameItem).not.toBeNull();
+      expect(page.copyUsernameItem.hasAttribute('disabled')).toBeFalsy();
+      expect(page.copyPasswordItem).not.toBeNull();
+      expect(page.copyPasswordItem.hasAttribute('disabled')).toBeFalsy();
+      expect(page.copyUriItem).not.toBeNull();
+      expect(page.copyUriItem.hasAttribute('disabled')).toBeFalsy();
+      expect(page.copyPermalinkItem).not.toBeNull();
+      expect(page.copyPermalinkItem.hasAttribute('disabled')).toBeFalsy();
+      expect(page.openUriItem).not.toBeNull();
+      expect(page.openUriItem.hasAttribute('disabled')).toBeFalsy();
+      expect(page.editItem).not.toBeNull();
+      expect(page.editItem.hasAttribute('disabled')).toBeFalsy();
+      expect(page.shareItem).not.toBeNull();
+      expect(page.shareItem.hasAttribute('disabled')).toBeTruthy();
+      expect(page.deleteItem).not.toBeNull();
+      expect(page.deleteItem.hasAttribute('disabled')).toBeFalsy();
+    });
+  });
+
+  describe('As LU I should have limited offered capabilities if constraint by rbac', () => {
+    const props = propsDenyUIActions();
+
+    beforeEach(() => {
+      page = new DisplayResourcesListContextualMenuPage(props);
+    });
+
+    it('As LU I should not see the copy password to clipboard if denied by rbac', async() => {
+      expect(page.copyUsernameItem).not.toBeNull();
+      expect(page.copyUsernameItem.hasAttribute('disabled')).toBeFalsy();
+      expect(page.copyPasswordItem).toBeNull();
+      expect(page.copyUriItem).not.toBeNull();
+      expect(page.copyUriItem.hasAttribute('disabled')).toBeFalsy();
+      expect(page.copyPermalinkItem).not.toBeNull();
+      expect(page.copyPermalinkItem.hasAttribute('disabled')).toBeFalsy();
+      expect(page.openUriItem).not.toBeNull();
+      expect(page.openUriItem.hasAttribute('disabled')).toBeFalsy();
+      expect(page.editItem).not.toBeNull();
+      expect(page.editItem.hasAttribute('disabled')).toBeFalsy();
+      expect(page.shareItem).toBeNull();
+      expect(page.deleteItem).not.toBeNull();
+      expect(page.deleteItem.hasAttribute('disabled')).toBeFalsy();
     });
   });
 });

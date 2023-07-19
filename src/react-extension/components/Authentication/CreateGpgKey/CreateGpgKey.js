@@ -16,14 +16,14 @@ import PropTypes from "prop-types";
 import debounce from "debounce-promise";
 import {Trans, withTranslation} from "react-i18next";
 import SecurityComplexity from "../../../../shared/lib/Secret/SecretComplexity";
-import SecretComplexity from "../../../../shared/lib/Secret/SecretComplexity";
 import Password from "../../../../shared/components/Password/Password";
 import {SecretGenerator} from "../../../../shared/lib/SecretGenerator/SecretGenerator";
 import PasswordComplexity from "../../../../shared/components/PasswordComplexity/PasswordComplexity";
 import ExternalServiceUnavailableError from "../../../../shared/lib/Error/ExternalServiceUnavailableError";
 import Tooltip from "../../Common/Tooltip/Tooltip";
 import ExternalServiceError from "../../../../shared/lib/Error/ExternalServiceError";
-
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
+import PownedService from '../../../../shared/services/api/secrets/pownedService';
 /**
  * The component display variations.
  * @type {Object}
@@ -36,6 +36,7 @@ export const CreateGpgKeyVariation = {
 /**
  * The component allows the user to create a Gpg key by automatic generation or by manually importing one
  */
+
 class CreateGpgKey extends Component {
   /**
    * Default constructor
@@ -123,6 +124,7 @@ class CreateGpgKey extends Component {
    * Whenever the component is mounted
    */
   componentDidMount() {
+    this.pownedService = new PownedService(this.props.context.port);
     this.focusOnPassphrase();
   }
 
@@ -146,6 +148,13 @@ class CreateGpgKey extends Component {
       passphraseEntropy = SecretGenerator.entropy(passphrase);
       hintClassNames = this.evaluatePassphraseHintClassNames(passphrase);
       this.isPwndProcessingPromise = this.evaluatePassphraseIsInDictionaryDebounce();
+    } else {
+      this.setState({
+        hintClassNames: {
+          ...this.state.hintClassNames,
+          notInDictionary: "unavailable"
+        }
+      });
     }
 
     this.setState({passphrase, passphraseEntropy, hintClassNames});
@@ -191,11 +200,12 @@ class CreateGpgKey extends Component {
     let notInDictionaryHint = "success";
 
     if (passphrase.length < 8) {
-      notInDictionaryHint = "error";
+      notInDictionaryHint = passphrase.length > 0 ? "error" : "unavailable";
     } else {
       try {
-        const isPwned = await SecretComplexity.ispwned(passphrase);
-        notInDictionaryHint = isPwned ? "error" : "success";
+        const result = await this.pownedService.evaluateSecret(passphrase);
+        isPwnedServiceAvailable = result.isPwnedServiceAvailable;
+        notInDictionaryHint =  isPwnedServiceAvailable ? (result.inDictionary ? "error" : "success") : "unavailable";
       } catch (error) {
         // If the service is unavailable don't block the user journey.
         if (error instanceof ExternalServiceUnavailableError || error instanceof ExternalServiceError) {
@@ -253,6 +263,7 @@ class CreateGpgKey extends Component {
    * Render the component
    */
   render() {
+    const passphraseEntropy = this.state.hintClassNames.notInDictionary ===  "error" ? 0 : this.state.passphraseEntropy;
     const processingClassName = this.isProcessing ? 'processing' : '';
     const disabledClassName = this.mustBeDisabled ? 'disabled' : '';
     return (
@@ -278,7 +289,7 @@ class CreateGpgKey extends Component {
               preview={true}
               onChange={this.handlePassphraseChange}
               disabled={!this.areActionsAllowed}/>
-            <PasswordComplexity entropy={this.state.passphraseEntropy}/>
+            <PasswordComplexity entropy={passphraseEntropy}/>
           </div>
 
           <div className="password-hints">
@@ -313,16 +324,15 @@ class CreateGpgKey extends Component {
             <button
               type="submit"
               className={`button primary big full-width ${disabledClassName} ${processingClassName}`}
-              role="button"
               disabled={this.mustBeDisabled || this.isProcessing}>
               <Trans>Next</Trans>
             </button>
             {this.props.onSecondaryActionClick &&
-            <a onClick={this.props.onSecondaryActionClick}>
+            <button className="link" type="button" onClick={this.props.onSecondaryActionClick}>
               {{
                 [CreateGpgKeyVariation.SETUP]: <Trans>Or use an existing private key.</Trans>,
               }[this.props.displayAs]}
-            </a>
+            </button>
             }
           </div>
         </form>
@@ -336,6 +346,7 @@ CreateGpgKey.defaultProps = {
 };
 
 CreateGpgKey.propTypes = {
+  context: PropTypes.any, // The application context
   onComplete: PropTypes.func.isRequired, // The callback function to call when the form is submitted
   displayAs: PropTypes.PropTypes.oneOf([
     CreateGpgKeyVariation.SETUP,
@@ -344,4 +355,4 @@ CreateGpgKey.propTypes = {
   onSecondaryActionClick: PropTypes.func, // Callback to trigger when the user clicks on the secondary action link.
 };
 
-export default withTranslation("common")(CreateGpgKey);
+export default withAppContext(withTranslation("common")(CreateGpgKey));

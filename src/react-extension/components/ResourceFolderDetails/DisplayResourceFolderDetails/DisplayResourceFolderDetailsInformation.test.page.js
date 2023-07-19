@@ -13,7 +13,7 @@
  * @since         2.11.0
  */
 import {fireEvent, render, waitFor} from "@testing-library/react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import React from "react";
 import {BrowserRouter as Router} from 'react-router-dom';
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
@@ -81,7 +81,7 @@ class TitleHeaderPageObject {
    * Returns the clickable area of the header
    */
   get hyperlink() {
-    return this._container.querySelector(".accordion-header h4 a");
+    return this._container.querySelector(".accordion-header h4 button");
   }
 
   /** Click on the title */
@@ -154,7 +154,7 @@ class DisplayInformationPageObject {
    * Returns the location elements of information
    */
   get location() {
-    return this._container.querySelector('.location .value a');
+    return this._container.querySelector('.location .value button');
   }
 
   /**

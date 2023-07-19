@@ -16,7 +16,7 @@ import {CirclePicker} from "react-color";
 import NotifyError from "../../Common/Error/NotifyError/NotifyError";
 import {withDialog} from "../../../contexts/DialogContext";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withUserSettings} from "../../../contexts/UserSettingsContext";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import SecretComplexity from "../../../../shared/lib/Secret/SecretComplexity";
@@ -320,6 +320,7 @@ class ChangeUserSecurityToken extends Component {
                   id="security-token-text"
                   ref={this.tokenCodeInputRef}
                   type="text"
+                  aria-required={true}
                   className="input text required"
                   name="text"
                   maxLength="3"
@@ -338,12 +339,13 @@ class ChangeUserSecurityToken extends Component {
                   colors={this.defaultColors}
                 />
                 <div className="randomize-button-wrapper">
-                  <a
-                    className={`randomize-button ${this.isProcessing ? "disabled" : ""}`}
-                    role="button"
+                  <button
+                    type="button"
+                    className={`randomize-button link ${this.isProcessing ? "disabled" : ""}`}
+                    disabled={this.isProcessing}
                     onClick={this.handleRandomize}>
                     <Trans>Randomize</Trans>
-                  </a>
+                  </button>
                 </div>
               </div>
               {this.state.hasBeenValidated &&

@@ -13,7 +13,7 @@
  */
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import Icon from "../../../../shared/components/Icons/Icon";
 import Tooltip from "../../Common/Tooltip/Tooltip";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
@@ -29,12 +29,11 @@ import GenerateResourcePassword from "../../ResourcePassword/GenerateResourcePas
 import {withResourcePasswordGeneratorContext} from "../../../contexts/ResourcePasswordGeneratorContext";
 import Password from "../../../../shared/components/Password/Password";
 import PasswordComplexity from "../../../../shared/components/PasswordComplexity/PasswordComplexity";
-
-/** Resource password max length */
-const RESOURCE_PASSWORD_MAX_LENGTH = 4096;
-
-/** Resource description max length */
-const RESOURCE_DESCRIPTION_MAX_LENGTH = 10000;
+import {maxSizeValidation} from "../../../lib/Error/InputValidator";
+import {RESOURCE_PASSWORD_MAX_LENGTH} from '../../../../shared/constants/inputs.const';
+import {RESOURCE_NAME_MAX_LENGTH, RESOURCE_DESCRIPTION_MAX_LENGTH, RESOURCE_URI_MAX_LENGTH} from '../../../../shared/constants/inputs.const';
+import debounce  from 'debounce-promise';
+import PownedService from '../../../../shared/services/api/secrets/pownedService';
 
 class EditResource extends Component {
   constructor(props) {
@@ -42,6 +41,7 @@ class EditResource extends Component {
     this.state = this.defaultState;
     this.initEventHandlers();
     this.createInputRef();
+    this.evaluatePasswordIsInDictionaryDebounce = debounce(this.evaluatePasswordIsInDictionary, 300);
   }
 
   get defaultState() {
@@ -51,10 +51,13 @@ class EditResource extends Component {
       nameOriginal: resource.name || "",
       name: resource.name || "",
       nameError: "",
+      nameWarning: "",
       username: resource.username || "",
       usernameError: "",
+      usernameWarning: "",
       uri: resource.uri || "",
       uriError: "",
+      uriWarning: "",
       password: "",
       passwordError: "",
       passwordWarning: "",
@@ -63,7 +66,10 @@ class EditResource extends Component {
       descriptionWarning: "",
       isSecretDecrypting: true,
       encryptDescription: null,
-      resourceTypeId: resource.resource_type_id || ""
+      resourceTypeId: resource.resource_type_id || "",
+      isPwnedServiceAvailable: true,
+      passwordInDictionary: false,
+      passwordEntropy: null,
     };
   }
 
@@ -71,7 +77,6 @@ class EditResource extends Component {
     this.handleClose = this.handleClose.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleNameInputKeyUp = this.handleNameInputKeyUp.bind(this);
     this.handlePasswordInputKeyUp = this.handlePasswordInputKeyUp.bind(this);
     this.handleOpenGenerator = this.handleOpenGenerator.bind(this);
     this.handleGeneratePasswordButtonClick = this.handleGeneratePasswordButtonClick.bind(this);
@@ -79,6 +84,9 @@ class EditResource extends Component {
     this.handleDescriptionInputBlur = this.handleDescriptionInputBlur.bind(this);
     this.handleDescriptionToggle = this.handleDescriptionToggle.bind(this);
     this.handleDescriptionInputKeyUp = this.handleDescriptionInputKeyUp.bind(this);
+    this.handleUriInputKeyUp = this.handleUriInputKeyUp.bind(this);
+    this.handleUsernameInputKeyUp = this.handleUsernameInputKeyUp.bind(this);
+    this.handleNameInputKeyUp = this.handleNameInputKeyUp.bind(this);
   }
 
   /**
@@ -94,6 +102,7 @@ class EditResource extends Component {
    * Whenever the component has been mounted
    */
   componentDidMount() {
+    this.pownedService = new PownedService(this.props.context.port);
     this.initialize();
   }
 
@@ -111,6 +120,7 @@ class EditResource extends Component {
       const encrypt = this.mustEncryptDescription();
       this.setState({encryptDescription: encrypt});
     }
+    this.evaluatePasswordIsInDictionary();
   }
 
   /*
@@ -259,8 +269,23 @@ class EditResource extends Component {
     }
 
     return new Promise(resolve => {
-      this.setState({passwordError: passwordError}, resolve);
+      this.setState({passwordError}, resolve);
     });
+  }
+
+  /**
+   * Evaluate to check if password is in a dictionary.
+   * @return {Promise}
+   */
+  async evaluatePasswordIsInDictionary() {
+    let passwordEntropy = null;
+    if (this.state.isPwnedServiceAvailable) {
+      passwordEntropy = this.state.password.length > 0 ? SecretGenerator.entropy(this.state.password) : null;
+      const result = await this.pownedService.evaluateSecret(this.state.password, this.state.isPwnedServiceAvailable);
+      const passwordInDictionary = this.state.password.length > 0 ?  result.inDictionary : false;
+      this.setState({isPwnedServiceAvailable: result.isPwnedServiceAvailable, passwordInDictionary});
+    }
+    this.setState({passwordEntropy});
   }
 
   /*
@@ -415,6 +440,18 @@ class EditResource extends Component {
     const target = event.target;
     const value = target.value;
     const name = target.name;
+
+    if (name === "password") {
+      if (value.length) {
+        this.evaluatePasswordIsInDictionaryDebounce();
+      } else {
+        this.setState({
+          passwordInDictionary: false,
+          passwordEntropy: null,
+        });
+      }
+    }
+
     this.setState({
       [name]: value
     });
@@ -439,19 +476,18 @@ class EditResource extends Component {
   /**
    * Handle name input keyUp event.
    */
-  handleNameInputKeyUp() {
-    const state = this.validateNameInput();
-    this.setState(state);
+  async handleNameInputKeyUp() {
+    await this.validateNameInput();
+    const nameWarning = maxSizeValidation(this.state.name, RESOURCE_NAME_MAX_LENGTH, this.translate);
+    this.setState({nameWarning});
   }
 
   /**
    * Handle password input keyUp event.
    */
   async handlePasswordInputKeyUp() {
-    const hasResourcePasswordMaxLength = this.state.password.length >= RESOURCE_PASSWORD_MAX_LENGTH;
     await this.validatePasswordInput();
-    const warningMessage = this.translate("this is the maximum size for this field, make sure your data was not truncated");
-    const passwordWarning = hasResourcePasswordMaxLength ? warningMessage : '';
+    const passwordWarning = maxSizeValidation(this.state.password, RESOURCE_PASSWORD_MAX_LENGTH, this.translate);
     this.setState({passwordWarning});
   }
 
@@ -463,7 +499,8 @@ class EditResource extends Component {
       return;
     }
     const password = SecretGenerator.generate(this.currentGeneratorConfiguration);
-    this.setState({password: password});
+    const passwordEntropy = SecretGenerator.entropy(password);
+    this.setState({password: password, passwordEntropy, passwordInDictionary: false});
   }
 
   /**
@@ -501,12 +538,27 @@ class EditResource extends Component {
    * Whenever the user input keys in the description area
    */
   handleDescriptionInputKeyUp() {
-    const hasResourceDescriptionMaxLength = this.state.description.length >= RESOURCE_DESCRIPTION_MAX_LENGTH;
-
-    const warningMessage = this.translate("this is the maximum size for this field, make sure your data was not truncated");
-    const descriptionWarning = hasResourceDescriptionMaxLength ? warningMessage : '';
+    const descriptionWarning = maxSizeValidation(this.state.description, RESOURCE_DESCRIPTION_MAX_LENGTH, this.translate);
     this.setState({descriptionWarning});
   }
+
+
+  /**
+   * Whenever the user input keys in the name area
+   */
+  handleUriInputKeyUp() {
+    const uriWarning = maxSizeValidation(this.state.uri, RESOURCE_URI_MAX_LENGTH, this.translate);
+    this.setState({uriWarning});
+  }
+
+  /**
+   * Whenever the user input keys in the username area
+   */
+  handleUsernameInputKeyUp() {
+    const usernameWarning = maxSizeValidation(this.state.username, RESOURCE_NAME_MAX_LENGTH, this.translate);
+    this.setState({usernameWarning});
+  }
+
 
   /*
    * =============================================================
@@ -627,16 +679,17 @@ class EditResource extends Component {
    * =============================================================
    */
   render() {
-    const passwordEntropy = this.state.password ? SecretGenerator.entropy(this.state.password) : null;
+    const passwordEntropy = this.state.passwordInDictionary  ? 0 : this.state.passwordEntropy;
     const passwordPlaceholder = this.getPasswordInputPlaceholder();
-
     return (
       <DialogWrapper title={this.translate("Edit resource")} subtitle={this.state.nameOriginal} className="edit-password-dialog"
         disabled={this.hasAllInputDisabled()} onClose={this.handleClose}>
         <form onSubmit={this.handleFormSubmit} noValidate>
           <div className="form-content">
             <div className={`input text required ${this.state.nameError ? "error" : ""} ${this.hasAllInputDisabled() ? 'disabled' : ''}`}>
-              <label htmlFor="edit-password-form-name"><Trans>Name</Trans></label>
+              <label htmlFor="edit-password-form-name"><Trans>Name</Trans>{this.state.nameWarning &&
+                  <Icon name="exclamation"/>
+              }</label>
               <input id="edit-password-form-name" name="name" type="text" value={this.state.name}
                 onKeyUp={this.handleNameInputKeyUp} onChange={this.handleInputChange}
                 disabled={this.hasAllInputDisabled()} ref={this.nameInputRef} className="required fluid" maxLength="255"
@@ -644,29 +697,51 @@ class EditResource extends Component {
               {this.state.nameError &&
               <div className="name error-message">{this.state.nameError}</div>
               }
+              {this.state.nameWarning && (
+                <div className="name warning-message">
+                  <strong><Trans>Warning:</Trans></strong> {this.state.nameWarning}
+                </div>
+              )}
             </div>
             <div className={`input text ${this.state.uriError ? "error" : ""} ${this.hasAllInputDisabled() ? 'disabled' : ''}`}>
-              <label htmlFor="edit-password-form-uri"><Trans>URI</Trans></label>
+              <label htmlFor="edit-password-form-uri"><Trans>URI</Trans>{this.state.uriWarning &&
+                  <Icon name="exclamation"/>
+              }</label>
               <input id="edit-password-form-uri" name="uri" className="fluid" maxLength="1024" type="text"
                 autoComplete="off" value={this.state.uri} onChange={this.handleInputChange} placeholder={this.translate("URI")}
+                onKeyUp={this.handleUriInputKeyUp}
                 disabled={this.hasAllInputDisabled()}/>
               {this.state.uriError &&
               <div className="error-message">{this.state.uriError}</div>
               }
+              {this.state.uriWarning && (
+                <div className="uri warning-message">
+                  <strong><Trans>Warning:</Trans></strong> {this.state.uriWarning}
+                </div>
+              )}
             </div>
             <div className={`input text ${this.state.usernameError ? "error" : ""} ${this.hasAllInputDisabled() ? 'disabled' : ''}`}>
-              <label htmlFor="edit-password-form-username"><Trans>Username</Trans></label>
+              <label htmlFor="edit-password-form-username"><Trans>Username</Trans>{this.state.usernameWarning &&
+                <Icon name="exclamation"/>
+              }</label>
               <input id="edit-password-form-username" name="username" type="text" className="fluid" maxLength="255"
-                autoComplete="off" value={this.state.username} onChange={this.handleInputChange} placeholder={this.translate("Username")}
+                autoComplete="off" value={this.state.username} onChange={this.handleInputChange}
+                onKeyUp={this.handleUsernameInputKeyUp}
+                placeholder={this.translate("Username")}
                 disabled={this.hasAllInputDisabled()}/>
               {this.state.usernameError &&
               <div className="error-message">{this.state.usernameError}</div>
               }
+              {this.state.usernameWarning && (
+                <div className="username warning-message">
+                  <strong><Trans>Warning:</Trans></strong> {this.state.usernameWarning}
+                </div>
+              )}
             </div>
             <div className={`input-password-wrapper input required ${this.state.passwordError ? "error" : ""} ${this.hasAllInputDisabled() ? 'disabled' : ''}`}>
               <label htmlFor="edit-password-form-password">
                 <Trans>Password</Trans>
-                {this.state.passwordWarning &&
+                {(this.state.passwordWarning || this.state.passwordInDictionary || !this.state.isPwnedServiceAvailable)  &&
                   <Icon name="exclamation"/>
                 }
               </label>
@@ -676,17 +751,17 @@ class EditResource extends Component {
                   placeholder={passwordPlaceholder} onChange={this.handleInputChange}
                   autoComplete="new-password" disabled={this.hasAllInputDisabled() || this.isPasswordDisabled()}
                   preview={true} inputRef={this.passwordInputRef}/>
-                <a onClick={this.handleGeneratePasswordButtonClick}
-                  className={`password-generate button-icon button ${this.hasAllInputDisabled() ? "disabled" : ""}`}>
+                <button type="button" onClick={this.handleGeneratePasswordButtonClick}
+                  className={`password-generate button-icon ${this.hasAllInputDisabled() ? "disabled" : ""}`}>
                   <Icon name='dice' big={true}/>
                   <span className="visually-hidden"><Trans>Generate</Trans></span>
-                </a>
+                </button>
                 {this.canUsePasswordGenerator &&
-                  <a onClick={this.handleOpenGenerator}
-                    className={`password-generator button-icon button ${this.hasAllInputDisabled() ? "disabled" : ""}`}>
+                  <button type="button" onClick={this.handleOpenGenerator}
+                    className={`password-generator button-icon ${this.hasAllInputDisabled() ? "disabled" : ""}`}>
                     <Icon name='settings' big={true}/>
                     <span className="visually-hidden"><Trans>Open generator</Trans></span>
-                  </a>
+                  </button>
                 }
               </div>
               <PasswordComplexity entropy={passwordEntropy} error={Boolean(this.state.passwordError)}/>
@@ -695,6 +770,12 @@ class EditResource extends Component {
               }
               {this.state.passwordWarning &&
                 <div className="password warning-message"><strong><Trans>Warning:</Trans></strong> {this.state.passwordWarning}</div>
+              }
+              {!this.state.isPwnedServiceAvailable &&
+                    <div className="pwned-password invalid-passphrase warning-message"><Trans>The pwnedpasswords service is unavailable, your password might be part of an exposed data breach</Trans></div>
+              }
+              {this.state.passwordInDictionary &&
+                    <div className="pwned-password invalid-passphrase warning-message"><Trans>The password is part of an exposed data breach.</Trans></div>
               }
             </div>
             <div className={`input textarea ${this.hasAllInputDisabled() ? 'disabled' : ''}`}>
@@ -708,22 +789,22 @@ class EditResource extends Component {
                 </Tooltip>
                 }
                 {this.areResourceTypesEnabled() && !this.state.encryptDescription &&
-                <a role="button" onClick={this.handleDescriptionToggle} className="lock-toggle">
+                <button type="button" onClick={this.handleDescriptionToggle} className="link inline lock-toggle">
                   <Tooltip message={this.translate("Do not store sensitive data or click here to enable encryption for the description field.")}>
                     <Icon name="lock-open"/>
                   </Tooltip>
-                </a>
+                </button>
                 }
                 {this.areResourceTypesEnabled() && this.state.encryptDescription &&
-                <a role="button" onClick={this.handleDescriptionToggle} className="lock-toggle">
+                <button type="button" onClick={this.handleDescriptionToggle} className="link inline lock-toggle">
                   <Tooltip message={this.translate("The description content will be encrypted.")}>
                     <Icon name="lock"/>
                   </Tooltip>
-                </a>
+                </button>
                 }
               </label>
               <textarea id="edit-password-form-description" name="description" maxLength="10000"
-                className="required" placeholder={this.getDescriptionPlaceholder()} value={this.state.description}
+                className="required" aria-required={true} placeholder={this.getDescriptionPlaceholder()} value={this.state.description}
                 disabled={this.hasAllInputDisabled() || this.isDescriptionDisabled()} onChange={this.handleInputChange} ref={this.descriptionInputRef}
                 onFocus={this.handleDescriptionInputFocus} onBlur={this.handleDescriptionInputBlur}
                 onKeyUp={this.handleDescriptionInputKeyUp}>
@@ -732,7 +813,7 @@ class EditResource extends Component {
               <div className="error-message">{this.state.descriptionError}</div>
               }
               {this.state.descriptionWarning &&
-                <div className="warning-message"><strong><Trans>Warning:</Trans></strong> {this.state.descriptionWarning}</div>
+                <div className="description warning-message"><strong><Trans>Warning:</Trans></strong> {this.state.descriptionWarning}</div>
               }
             </div>
           </div>

@@ -61,6 +61,16 @@ class DisplayAdministrationWorkspaceBreadcrumb extends Component {
         return this.translate("Internationalisation");
       case AdministrationWorkspaceMenuTypes.ACCOUNT_RECOVERY:
         return this.translate("Account Recovery");
+      case AdministrationWorkspaceMenuTypes.SMTP_SETTINGS:
+        return this.translate("Email server");
+      case AdministrationWorkspaceMenuTypes.SELF_REGISTRATION:
+        return this.translate("Self Registration");
+      case AdministrationWorkspaceMenuTypes.SSO:
+        return this.translate("Single Sign-On");
+      case AdministrationWorkspaceMenuTypes.MFA_POLICY:
+        return this.translate("MFA Policy");
+      case AdministrationWorkspaceMenuTypes.RBAC:
+        return this.translate("Role-Based Access Control");
       default:
         return "";
     }

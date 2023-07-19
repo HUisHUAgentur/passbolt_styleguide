@@ -1,7 +1,8 @@
 import React, {Component} from "react";
 import {Route, Redirect} from "react-router-dom";
-import {withAppContext} from "../../contexts/AppContext";
 import PropTypes from "prop-types";
+import {withAppContext} from "../../../shared/context/AppContext/AppContext";
+import RbacContextProvider from "../../../shared/context/Rbac/RbacContext";
 
 class PrivateRoute extends Component {
   render() {
@@ -14,13 +15,15 @@ class PrivateRoute extends Component {
         path={path}
         render={props => (
           <React.Fragment>
-            {this.props.context.isAuthenticated &&
-              <Component {...props} {...componentProps} />
+            {this.props.context.isAuthenticated && this.props.context.loggedInUser !== null &&
+              <RbacContextProvider>
+                <Component {...props} {...componentProps} />
+              </RbacContextProvider>
             }
             {!this.props.context.isAuthenticated &&
               <Redirect
                 to={{
-                  pathname: "/data/quickaccess/login",
+                  pathname: "/webAccessibleResources/quickaccess/login",
                   search: props.location.search,
                   state: {from: props.location}
                 }}

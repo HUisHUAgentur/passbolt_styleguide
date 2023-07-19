@@ -19,6 +19,9 @@ import EnterUsernameForm from "../../Authentication/EnterUsernameForm/EnterUsern
 import EnterNameForm from "../../Authentication/EnterNameForm/EnterNameForm";
 import CheckMailBox from "../../Authentication/CheckMailBox/CheckMailBox";
 import DisplayRequireInvitationError from "../../Authentication/DisplayRequireInvitationError/DisplayRequireInvitationError";
+import DisplayUnexpectedError from "../../Authentication/DisplayUnexpectedError/DisplayUnexpectedError";
+import SsoProviders from "../../Administration/ManageSsoSettings/SsoProviders.data";
+import IdentifyWithSso from "../../Authentication/IdentifyWithSso/IdentifyWithSso";
 
 /**
  * The component orchestrates the api triage workflow.
@@ -29,13 +32,23 @@ class OrchestrateApiTriage extends Component {
    */
   componentDidMount() {
     this.initializeTriage();
+    this.getSsoProviderData = this.getSsoProviderData.bind(this);
   }
 
   /**
    * Initialize the triage.
    */
   initializeTriage() {
-    setTimeout(() => this.props.apiTriageContext.onInitializeTriageRequested(), 1000);
+    setTimeout(this.props.apiTriageContext.onInitializeTriageRequested, 1000);
+  }
+
+  /**
+   * Returns the SSO provider data based on the current provider id set in props
+   * @returns {object}
+   */
+  getSsoProviderData() {
+    const providerId = this.props.apiTriageContext.getSsoProviderId();
+    return SsoProviders.find(provider => provider.id === providerId);
   }
 
   /**
@@ -45,13 +58,26 @@ class OrchestrateApiTriage extends Component {
   render() {
     switch (this.props.apiTriageContext.state) {
       case ApiTriageContextState.USERNAME_STATE:
-        return <EnterUsernameForm/>;
+        return <EnterUsernameForm
+          isSsoRecoverEnabled={this.props.apiTriageContext.isSsoRecoverEnabled}
+          onSecondaryActionClick={this.props.apiTriageContext.handleSwitchToSsoSignInState}
+        />;
+      case ApiTriageContextState.SSO_SIGN_IN_STATE:
+        return <IdentifyWithSso
+          ssoProvider={this.getSsoProviderData()}
+          onSecondaryActionClick={this.props.apiTriageContext.handleSwitchToUsernameState}
+          onUserRegistrationRequired={this.props.apiTriageContext.handleSwitchToEnterNameState}
+        />;
       case ApiTriageContextState.CHECK_MAILBOX_STATE:
         return <CheckMailBox/>;
       case ApiTriageContextState.NAME_STATE:
         return <EnterNameForm/>;
       case ApiTriageContextState.ERROR_STATE:
         return <DisplayRequireInvitationError/>;
+      case ApiTriageContextState.UNEXPECTED_ERROR_STATE:
+        return <DisplayUnexpectedError
+          error={this.props.apiTriageContext.unexpectedError}
+        />;
       default:
         return <LoadingSpinner/>;
     }

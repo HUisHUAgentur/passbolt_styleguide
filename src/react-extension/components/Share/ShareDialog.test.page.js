@@ -15,7 +15,7 @@
 import {fireEvent, render, waitFor} from "@testing-library/react";
 import React from "react";
 import ShareDialog from "./ShareDialog";
-import AppContext from "../../contexts/AppContext";
+import AppContext from "../../../shared/context/AppContext/AppContext";
 import MockTranslationProvider from "../../test/mock/components/Internationalisation/MockTranslationProvider";
 
 /**
@@ -90,7 +90,7 @@ export default class ShareDialogPage {
    * @returns {Element}
    */
   userOrGroupAutocomplete(index) {
-    return this._page.container.querySelectorAll('#autocomplete-item .row .main-cell-wrapper .main-cell a')[index - 1];
+    return this._page.container.querySelectorAll('#autocomplete-item .row .main-cell-wrapper .main-cell button')[index - 1];
   }
 
   /**

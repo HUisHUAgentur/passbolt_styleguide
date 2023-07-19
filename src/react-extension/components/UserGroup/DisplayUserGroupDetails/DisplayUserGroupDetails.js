@@ -14,7 +14,7 @@
 import React from "react";
 import Icon from "../../../../shared/components/Icons/Icon";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withUserWorkspace} from "../../../contexts/UserWorkspaceContext";
 import DisplayUserGroupDetailsInformation
   from "../DisplayUserGroupDetailsInformation/DisplayUserGroupDetailsInformation";
@@ -22,6 +22,7 @@ import GroupAvatar from "../../Common/Avatar/GroupAvatar";
 import DisplayUserGroupDetailsMembers from "../DisplayUserGroupDetailsMembers/DisplayUserGroupDetailsMembers";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import {Trans, withTranslation} from "react-i18next";
+import ClipBoard from '../../../../shared/lib/Browser/clipBoard';
 
 /**
  * This component displays the details of a users group
@@ -64,7 +65,7 @@ class DisplayUserGroupDetails extends React.Component {
   async handlePermalinkClick() {
     const baseUrl = this.props.context.userSettings.getTrustedDomain();
     const permalink = `${baseUrl}/app/groups/view/${this.group.id}`;
-    await this.props.context.port.request("passbolt.clipboard.copy", permalink);
+    await ClipBoard.copy(permalink, this.props.context.port);
     this.props.actionFeedbackContext.displaySuccess(this.translate("The permalink has been copied to clipboard"));
   }
 
@@ -94,24 +95,22 @@ class DisplayUserGroupDetails extends React.Component {
         <div className="sidebar user">
           <div className="sidebar-header">
             <div className="teaser-image">
-              <GroupAvatar
-                group={this.group}
-                baseUrl={this.baseUrl}/>
+              <GroupAvatar group={this.group}/>
             </div>
             <h3>
               <div className="title-wrapper">
                 <span className="name sidebar-header-title">{this.group.name}</span>
-                <a className="title-link" title={this.translate("Copy the link to this group")} onClick={this.handlePermalinkClick}>
+                <button type="button" className="title-link link no-border" title={this.translate("Copy the link to this group")} onClick={this.handlePermalinkClick}>
                   <Icon name="link"/>
                   <span className="visuallyhidden"><Trans>Copy the link to this group</Trans></span>
-                </a>
+                </button>
               </div>
               <span className="subtitle"><Trans>Group</Trans></span>
             </h3>
-            <a className="dialog-close button button-transparent" onClick={this.handleCloseClick}>
+            <button type="button" className="dialog-close button-transparent" onClick={this.handleCloseClick}>
               <Icon name="close"/>
               <span className="visuallyhidden"><Trans>Close</Trans></span>
-            </a>
+            </button>
           </div>
         </div>
         <DisplayUserGroupDetailsInformation/>

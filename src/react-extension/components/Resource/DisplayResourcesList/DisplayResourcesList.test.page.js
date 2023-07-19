@@ -1,4 +1,3 @@
-
 /**
  * Passbolt ~ Open source password manager for teams
  * Copyright (c) 2020 Passbolt SA (https://www.passbolt.com)
@@ -13,14 +12,11 @@
  * @since         2.11.0
  */
 
-
 import {fireEvent, render, waitFor} from "@testing-library/react";
 import React from "react";
-import AppContext from "../../../contexts/AppContext";
 import {BrowserRouter as Router} from "react-router-dom";
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
 import DisplayResourcesList from "./DisplayResourcesList";
-import {DragContext} from "../../../contexts/DragContext";
 
 /**
  * The DisplayResourcesListPage component represented as a page
@@ -31,16 +27,12 @@ export default class DisplayResourcesListPage {
    * @param appContext An app context
    * @param props Props to attach
    */
-  constructor(appContext, props) {
+  constructor(props) {
     this._page = render(
       <MockTranslationProvider>
-        <AppContext.Provider value={appContext}>
-          <Router>
-            <DragContext.Provider value={props.dragContext}>
-              <DisplayResourcesList {...props}/>
-            </DragContext.Provider>
-          </Router>
-        </AppContext.Provider>
+        <Router>
+          <DisplayResourcesList {...props}/>
+        </Router>
       </MockTranslationProvider>
     );
   }
@@ -71,23 +63,26 @@ export default class DisplayResourcesListPage {
         return element.querySelector('.uri div').textContent;
       },
       get password() {
-        return element.querySelector('.password .secret a span').textContent;
+        return element.querySelector('.password .secret button span').textContent;
       },
       get isViewPasswordExist() {
         return Boolean(element.querySelector('.password .password-view'));
       },
+      get copyPasswordLink() {
+        return element.querySelector('.password .secret button');
+      },
       async selectFavorite() {
-        const favorite = element.querySelector('.cell-favorite div a');
+        const favorite = element.querySelector('.cell-favorite div button');
         fireEvent.click(favorite, leftClick);
         await waitFor(() => {});
       },
       async selectUsername() {
-        const username = element.querySelector('.username div a');
+        const username = element.querySelector('.username div button');
         fireEvent.click(username, leftClick);
         await waitFor(() => {});
       },
       async selectPassword() {
-        const password = element.querySelector('.password .secret a');
+        const password = element.querySelector('.password .secret button');
         fireEvent.click(password, leftClick);
         await waitFor(() => {});
       },
@@ -97,7 +92,7 @@ export default class DisplayResourcesListPage {
         await waitFor(() => {});
       },
       async selectUri() {
-        const uri = element.querySelector('.cell-uri div a');
+        const uri = element.querySelector('.cell-uri div button');
         fireEvent.click(uri, leftClick);
         await waitFor(() => {});
       },
@@ -136,7 +131,7 @@ export default class DisplayResourcesListPage {
    * Sort the resources by favorite
    */
   async sortByResourceFavorite() {
-    const element = this._page.container.querySelectorAll('thead th a')[0];
+    const element = this._page.container.querySelectorAll('thead th button')[0];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -146,7 +141,7 @@ export default class DisplayResourcesListPage {
    * Sort the resources by their name
    */
   async sortByResourceName() {
-    const element = this._page.container.querySelectorAll('thead th a')[1];
+    const element = this._page.container.querySelectorAll('thead th button')[1];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -156,7 +151,7 @@ export default class DisplayResourcesListPage {
    * Sort the resources by their username
    */
   async sortByUsername() {
-    const element = this._page.container.querySelectorAll('thead th a')[2];
+    const element = this._page.container.querySelectorAll('thead th button')[2];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -166,7 +161,7 @@ export default class DisplayResourcesListPage {
    * Sort the resources by their uri
    */
   async sortByUri() {
-    const element = this._page.container.querySelectorAll('thead th a')[3];
+    const element = this._page.container.querySelectorAll('thead th button')[3];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -176,7 +171,7 @@ export default class DisplayResourcesListPage {
    * Sort the resources by their last date of modification
    */
   async sortByModified() {
-    const element = this._page.container.querySelectorAll('thead th a')[4];
+    const element = this._page.container.querySelectorAll('thead th button')[4];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});

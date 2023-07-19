@@ -14,7 +14,7 @@ import React, {Component} from "react";
 import {withRouter} from "react-router-dom";
 import PropTypes from "prop-types";
 import Breadcrumbs from "../../Common/Navigation/Breadcrumbs/Breadcrumbs";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import Breadcrumb from "../../Common/Navigation/Breadcrumbs/Breadcrumb";
 import {withNavigationContext} from "../../../contexts/NavigationContext";
 import {withTranslation} from "react-i18next";
@@ -56,9 +56,11 @@ class DisplayUserSettingsWorkspaceBreadcrumb extends Component {
       'security-token': this.translate("Security token"),
       theme: this.translate("Theme"),
       mfa: this.translate("Multi Factor Authentication"),
+      duo: this.translate("Multi Factor Authentication"),
       keys: this.translate("Keys inspector"),
       mobile: this.translate("Mobile transfer"),
       'account-recovery': this.translate("Account Recovery"),
+      'smtp-settings': this.translate("Email server"),
     };
     const matchedKey = Object.keys(names).find(matchPathSuffix);
     return names[matchedKey];

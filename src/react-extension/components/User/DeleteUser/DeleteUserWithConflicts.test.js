@@ -122,7 +122,7 @@ describe("See Delete User Dialog", () => {
       page.displayDeleteUserWithConflictsDialog.clickWithoutWaitFor(page.displayDeleteUserWithConflictsDialog.saveButton);
       // API calls are made on submit, wait they are resolved.
       await waitFor(() => {
-        expect(page.displayDeleteUserWithConflictsDialog.cancelButtonDisabled).not.toBeNull();
+        expect(page.displayDeleteUserWithConflictsDialog.hasCancelButtonDisabled()).toBeTruthy();
         expect(page.displayDeleteUserWithConflictsDialog.saveButton.getAttribute("disabled")).not.toBeNull();
         expect(page.displayDeleteUserWithConflictsDialog.saveButtonProcessing).not.toBeNull();
         updateResolve();
@@ -149,6 +149,10 @@ describe("See Delete User Dialog", () => {
       fireEvent.keyDown(page.displayDeleteUserWithConflictsDialog.dialogTitle, escapeKeyDown);
 
       expect(props.onClose).toBeCalled();
+    });
+
+    it('As LU I want to see a long  resource/tag/folders name fitting its delete dialog', async() => {
+      expect(page.displayDeleteUserWithConflictsDialog.userName.classList.contains("dialog-variable")).toBeTruthy();
     });
 
     it('Displays an error when the API call fail', async() => {

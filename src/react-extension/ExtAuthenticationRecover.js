@@ -13,7 +13,7 @@
  */
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import AppContext from "./contexts/AppContext";
+import AppContext from "../shared/context/AppContext/AppContext";
 import TranslationProvider from "./components/Common/Internationalisation/TranslationProvider";
 import AuthenticationRecoverContextProvider from "./contexts/Authentication/AuthenticationRecoverContext";
 import RecoverAuthentication from "./components/AuthenticationRecover/RecoverAuthentication/RecoverAuthentication";
@@ -130,7 +130,7 @@ class ExtAuthenticationRecover extends Component {
     return (
       <AppContext.Provider value={this.state}>
         {this.isReady() &&
-        <TranslationProvider loadingPath="/data/locales/{{lng}}/{{ns}}.json">
+        <TranslationProvider loadingPath="/webAccessibleResources/locales/{{lng}}/{{ns}}.json">
           <AuthenticationRecoverContextProvider>
             <div id="container" className="container page login">
               <div className="content">

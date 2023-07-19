@@ -3,11 +3,14 @@
  * @param appContext An existing app context
  * @returns {any | ({userSettings: UserSettings, siteSettings: SiteSettings, port: MockPort} & {})}
  */
-import DisplayAdministrationWorkspaceActions
-  from "./DisplayAdministrationWorkspaceActions/DisplayAdministrationWorkspaceActions";
+
+import DisplayAdministrationEmailNotificationActions from "./DisplayAdministrationWorkspaceActions/DisplayAdministrationEmailNotificationActions/DisplayAdministrationEmailNotificationActions";
 
 export function defaultAppContext(appContext) {
   const defaultAppContext = {
+    siteSettings: {
+      canIUse: () => true
+    },
   };
   return Object.assign(defaultAppContext, appContext || {});
 }
@@ -23,9 +26,12 @@ export function defaultProps(selectedAdministration) {
         getTrustedDomain: jest.fn()
       }
     },
+    mfaContext: {
+      checkMfaChoiceRequired: jest.fn()
+    },
     administrationWorkspaceContext: {
       selectedAdministration,
-      administrationWorkspaceAction: DisplayAdministrationWorkspaceActions
+      administrationWorkspaceAction: DisplayAdministrationEmailNotificationActions
     }
   };
 }

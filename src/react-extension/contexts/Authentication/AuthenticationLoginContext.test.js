@@ -11,7 +11,6 @@
  * @link          https://www.passbolt.com Passbolt(tm)
  * @since         3.6.0
  */
-
 import mockComponentSetState from "../../test/mock/components/React/mockSetState";
 import {AuthenticationLoginContextProvider, AuthenticationLoginWorkflowStates} from "./AuthenticationLoginContext";
 import {
@@ -45,7 +44,8 @@ describe("AuthenticationLoginContextProvider", () => {
       mockComponentSetState(contextProvider);
 
       expect.assertions(2);
-      await contextProvider.initialize();
+      await contextProvider.componentDidMount();
+
       expect(props.context.port.requestListeners["passbolt.auth.verify-server-key"]).toHaveBeenCalled();
       expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.SIGN_IN);
     });
@@ -56,7 +56,7 @@ describe("AuthenticationLoginContextProvider", () => {
       mockComponentSetState(contextProvider);
 
       expect.assertions(4);
-      await contextProvider.initialize();
+      await contextProvider.componentDidMount();
       expect(props.context.port.requestListeners["passbolt.auth.verify-server-key"]).toHaveBeenCalled();
       expect(props.context.port.requestListeners["passbolt.auth.get-server-key"]).toHaveBeenCalled();
       expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.ACCEPT_NEW_SERVER_KEY);
@@ -70,10 +70,89 @@ describe("AuthenticationLoginContextProvider", () => {
       mockComponentSetState(contextProvider);
 
       expect.assertions(3);
-      await contextProvider.initialize();
+      await contextProvider.componentDidMount();
       expect(props.context.port.requestListeners["passbolt.auth.verify-server-key"]).toHaveBeenCalled();
       expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.UNEXPECTED_ERROR);
       expect(contextProvider.state.error.message).toEqual("Unexpected error");
+    });
+
+    it("If the user has an SSO kit valid, the machine state should be set to: SIGN_IN_SSO", async() => {
+      const props = defaultProps({
+        ssoContext: {
+          hasUserAnSsoKit: () => true
+        }
+      });
+      props.context.port.addRequestListener("passbolt.sso.has-sso-login-error", jest.fn(async() => false));
+      const contextProvider = new AuthenticationLoginContextProvider(props);
+      mockComponentSetState(contextProvider);
+
+      expect.assertions(2);
+      await contextProvider.componentDidMount();
+
+      expect(props.context.port.requestListeners["passbolt.auth.verify-server-key"]).toHaveBeenCalled();
+      expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.SIGN_IN_SSO);
+    });
+
+    it("If the user attempted an SSO login but the feature is disabled, the machine state should be set to: SSO_DISABLED_ERROR", async() => {
+      const props = defaultProps({
+        ssoContext: {
+          hasUserAnSsoKit: () => true
+        }
+      });
+      const ssoLoginError = new Error("Sso is disabled");
+      ssoLoginError.name = "SsoDisabledError";
+      props.context.port.addRequestListener("passbolt.sso.has-sso-login-error", jest.fn(async() => true));
+      props.context.port.addRequestListener("passbolt.sso.get-qualified-sso-login-error", jest.fn(async() => ssoLoginError));
+
+      const contextProvider = new AuthenticationLoginContextProvider(props);
+      mockComponentSetState(contextProvider);
+
+      expect.assertions(2);
+      await contextProvider.componentDidMount();
+
+      expect(props.context.port.requestListeners["passbolt.auth.verify-server-key"]).toHaveBeenCalled();
+      expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.SSO_DISABLED_ERROR);
+    });
+
+    it("If the user attempted an SSO login but with the wrong provider, the machine state should be set to: SSO_PROVIDER_MISMATCH_ERROR", async() => {
+      const props = defaultProps({
+        ssoContext: {
+          hasUserAnSsoKit: () => true
+        }
+      });
+      const ssoLoginError = new Error("Sso provider mismatch");
+      ssoLoginError.name = "SsoProviderMismatchError";
+      props.context.port.addRequestListener("passbolt.sso.has-sso-login-error", jest.fn(async() => true));
+      props.context.port.addRequestListener("passbolt.sso.get-qualified-sso-login-error", jest.fn(async() => ssoLoginError));
+
+      const contextProvider = new AuthenticationLoginContextProvider(props);
+      mockComponentSetState(contextProvider);
+
+      expect.assertions(2);
+      await contextProvider.componentDidMount();
+
+      expect(props.context.port.requestListeners["passbolt.auth.verify-server-key"]).toHaveBeenCalled();
+      expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.SSO_PROVIDER_MISMATCH_ERROR);
+    });
+
+    it("If the user hits the SSO login URL with a properly configured kit, the machine state should be set to: SIGN_IN_SSO", async() => {
+      const props = defaultProps({
+        ssoContext: {
+          hasUserAnSsoKit: () => true
+        }
+      });
+      const ssoLoginError = new Error("Unexpected error");
+      props.context.port.addRequestListener("passbolt.sso.has-sso-login-error", jest.fn(async() => true));
+      props.context.port.addRequestListener("passbolt.sso.get-qualified-sso-login-error", jest.fn(async() => ssoLoginError));
+
+      const contextProvider = new AuthenticationLoginContextProvider(props);
+      mockComponentSetState(contextProvider);
+
+      expect.assertions(2);
+      await contextProvider.componentDidMount();
+
+      expect(props.context.port.requestListeners["passbolt.auth.verify-server-key"]).toHaveBeenCalled();
+      expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.SIGN_IN_SSO);
     });
   });
 
@@ -84,7 +163,7 @@ describe("AuthenticationLoginContextProvider", () => {
       mockComponentSetState(contextProvider);
 
       expect.assertions(3);
-      await contextProvider.initialize();
+      await contextProvider.componentDidMount();
       expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.ACCEPT_NEW_SERVER_KEY);
       await contextProvider.acceptNewServerKey();
       expect(props.context.port.requestListeners["passbolt.auth.replace-server-key"]).toHaveBeenCalled();
@@ -98,7 +177,7 @@ describe("AuthenticationLoginContextProvider", () => {
       mockComponentSetState(contextProvider);
 
       expect.assertions(4);
-      await contextProvider.initialize();
+      await contextProvider.componentDidMount();
       expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.ACCEPT_NEW_SERVER_KEY);
       await contextProvider.acceptNewServerKey();
       expect(props.context.port.requestListeners["passbolt.auth.replace-server-key"]).toHaveBeenCalled();
@@ -114,7 +193,7 @@ describe("AuthenticationLoginContextProvider", () => {
       mockComponentSetState(contextProvider);
 
       expect.assertions(2);
-      await contextProvider.initialize();
+      await contextProvider.componentDidMount();
       await contextProvider.checkPassphrase("passphrase");
       expect(props.context.port.requestListeners["passbolt.auth.verify-passphrase"]).toHaveBeenCalledWith("passphrase", undefined);
       expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.SIGN_IN);
@@ -127,7 +206,7 @@ describe("AuthenticationLoginContextProvider", () => {
       mockComponentSetState(contextProvider);
 
       expect.assertions(3);
-      await contextProvider.initialize();
+      await contextProvider.componentDidMount();
       try {
         await contextProvider.checkPassphrase("passphrase");
         expect(false).toBeTruthy();
@@ -145,7 +224,7 @@ describe("AuthenticationLoginContextProvider", () => {
       mockComponentSetState(contextProvider);
 
       expect.assertions(3);
-      await contextProvider.initialize();
+      await contextProvider.componentDidMount();
       await contextProvider.checkPassphrase("passphrase");
       expect(props.context.port.requestListeners["passbolt.auth.verify-passphrase"]).toHaveBeenCalledWith("passphrase", undefined);
       expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.UNEXPECTED_ERROR);
@@ -160,7 +239,7 @@ describe("AuthenticationLoginContextProvider", () => {
       mockComponentSetState(contextProvider);
 
       expect.assertions(2);
-      await contextProvider.initialize();
+      await contextProvider.componentDidMount();
       await contextProvider.signIn("passphrase");
       expect(props.context.port.requestListeners["passbolt.auth.login"]).toHaveBeenCalledWith("passphrase", false, undefined);
       expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.SIGNING_IN);
@@ -173,7 +252,7 @@ describe("AuthenticationLoginContextProvider", () => {
       mockComponentSetState(contextProvider);
 
       expect.assertions(2);
-      await contextProvider.initialize();
+      await contextProvider.componentDidMount();
       await contextProvider.signIn("passphrase");
       expect(props.context.port.requestListeners["passbolt.auth.login"]).toHaveBeenCalledWith("passphrase", false, undefined);
       expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.SIGN_IN_ERROR);
@@ -187,7 +266,7 @@ describe("AuthenticationLoginContextProvider", () => {
       mockComponentSetState(contextProvider);
 
       expect.assertions(1);
-      await contextProvider.initialize();
+      await contextProvider.componentDidMount();
       await contextProvider.needHelpCredentialsLost();
       expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.INITIATE_ACCOUNT_RECOVERY);
     });
@@ -198,7 +277,7 @@ describe("AuthenticationLoginContextProvider", () => {
       mockComponentSetState(contextProvider);
 
       expect.assertions(1);
-      await contextProvider.initialize();
+      await contextProvider.componentDidMount();
       await contextProvider.needHelpCredentialsLost();
       expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.HELP_CREDENTIALS_LOST);
     });
@@ -211,7 +290,7 @@ describe("AuthenticationLoginContextProvider", () => {
       mockComponentSetState(contextProvider);
 
       expect.assertions(2);
-      await contextProvider.initialize();
+      await contextProvider.componentDidMount();
       await contextProvider.requestHelpCredentialsLost();
       expect(props.context.port.requestListeners["passbolt.auth.request-help-credentials-lost"]).toHaveBeenCalled();
       expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.CHECK_MAILBOX);
@@ -224,11 +303,142 @@ describe("AuthenticationLoginContextProvider", () => {
       mockComponentSetState(contextProvider);
 
       expect.assertions(3);
-      await contextProvider.initialize();
+      await contextProvider.componentDidMount();
       await contextProvider.requestHelpCredentialsLost();
       expect(props.context.port.requestListeners["passbolt.auth.request-help-credentials-lost"]).toHaveBeenCalled();
       expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.UNEXPECTED_ERROR);
       expect(contextProvider.state.error.message).toEqual("Unexpected error");
+    });
+  });
+
+  describe("AuthenticationLoginContextProvider::handleSsoSignIn", () => {
+    it("When the user initiates an SSO sign-in, the context should call the sso context to handle the sign-in", async() => {
+      const props = defaultProps({
+        ssoContext: {
+          runSignInProcess: jest.fn(() => {})
+        }
+      });
+      const contextProvider = new AuthenticationLoginContextProvider(props);
+      mockComponentSetState(contextProvider);
+
+      await contextProvider.componentDidMount();
+
+      expect.assertions(1);
+      await contextProvider.handleSsoSignIn();
+      expect(props.ssoContext.runSignInProcess).toHaveBeenCalledTimes(1);
+    });
+
+    it("After a successful SSO sign-in the machine state should be SIGNING_IN", async() => {
+      const props = defaultProps({
+        ssoContext: {
+          runSignInProcess: jest.fn(() => {})
+        }
+      });
+      const contextProvider = new AuthenticationLoginContextProvider(props);
+      mockComponentSetState(contextProvider);
+
+      await contextProvider.componentDidMount();
+
+      expect.assertions(1);
+      await contextProvider.handleSsoSignIn();
+      expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.SIGNING_IN);
+    });
+
+    it("When the user fails to sign-in for an unexpected reason, the machine state should be on UNEXPECTED_ERROR", async() => {
+      const error = new Error("This is an unexpected error");
+      const props = defaultProps({
+        ssoContext: {
+          runSignInProcess: jest.fn(() => { throw error; })
+        }
+      });
+      const contextProvider = new AuthenticationLoginContextProvider(props);
+      mockComponentSetState(contextProvider);
+
+      await contextProvider.componentDidMount();
+
+      expect.assertions(2);
+      await contextProvider.handleSsoSignIn();
+      expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.UNEXPECTED_ERROR);
+      expect(contextProvider.state.error.message).toEqual(error.message);
+    });
+
+    it("When the user closes the popup, the state should remain on SIGN_IN_SSO", async() => {
+      const error = new Error("The user closed the pop-up");
+      error.name = "UserAbortsOperationError";
+
+      const props = defaultProps({
+        ssoContext: {
+          runSignInProcess: jest.fn(() => { throw error; })
+        }
+      });
+
+      const contextProvider = new AuthenticationLoginContextProvider(props);
+      mockComponentSetState(contextProvider);
+      await contextProvider.componentDidMount();
+      contextProvider.setState({state: AuthenticationLoginWorkflowStates.SIGN_IN_SSO});
+
+      expect.assertions(1);
+
+      await contextProvider.handleSsoSignIn();
+
+      expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.SIGN_IN_SSO);
+    });
+  });
+
+  describe("AuthenticationLoginContextProvider::handleUserConfirmSsoDisable", () => {
+    it("When the user confirms the SSO feature is actually disabled, the context should call the bext to remove the kit and go for passphrase sign in", async() => {
+      expect.assertions(4);
+      const ssoDisabledError = new Error("SSO feature is disabled");
+      ssoDisabledError.name = "SsoDisabledError";
+      const props = defaultProps({
+        ssoContext: {
+          runSignInProcess: jest.fn(() => { throw ssoDisabledError; })
+        }
+      });
+      const deleteLocalKitCallback = jest.fn();
+      props.context.port.addRequestListener("passbolt.sso.delete-local-kit", deleteLocalKitCallback);
+      const contextProvider = new AuthenticationLoginContextProvider(props);
+      mockComponentSetState(contextProvider);
+      await contextProvider.componentDidMount();
+
+      await contextProvider.handleSsoSignIn();
+      expect(props.ssoContext.runSignInProcess).toHaveBeenCalledTimes(1);
+      expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.SSO_DISABLED_ERROR);
+
+      await contextProvider.handleUserConfirmSsoDisable();
+
+      expect(deleteLocalKitCallback).toHaveBeenCalledTimes(1);
+      expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.SIGN_IN);
+    });
+  });
+
+  describe("AuthenticationLoginContextProvider::handleUserConfirmSsoProviderChange", () => {
+    it("When the user confirms the SSO provider has changed, the context should call the bext to update the kit and go for SSO sign in state", async() => {
+      expect.assertions(5);
+      const expectedProvider = "google";
+      const ssoProviderMismatchError = new Error("SSO provider changed");
+      ssoProviderMismatchError.name = "SsoProviderMismatchError";
+      ssoProviderMismatchError.configuredProvider = expectedProvider;
+      const props = defaultProps({
+        ssoContext: {
+          runSignInProcess: jest.fn(() => { throw ssoProviderMismatchError; })
+        }
+      });
+      const updateProviderCallback = jest.fn();
+      props.context.port.addRequestListener("passbolt.sso.update-provider-local-kit", updateProviderCallback);
+      const contextProvider = new AuthenticationLoginContextProvider(props);
+      mockComponentSetState(contextProvider);
+      await contextProvider.componentDidMount();
+
+      await contextProvider.handleSsoSignIn();
+      expect(props.ssoContext.runSignInProcess).toHaveBeenCalledTimes(1);
+      expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.SSO_PROVIDER_MISMATCH_ERROR);
+
+      await contextProvider.handleUserConfirmSsoProviderChange();
+
+      expect(updateProviderCallback).toHaveBeenCalledTimes(1);
+      expect(updateProviderCallback).toHaveBeenCalledWith(expectedProvider, undefined);
+      expect(contextProvider.state.state).toEqual(AuthenticationLoginWorkflowStates.SIGN_IN_SSO);
     });
   });
 });

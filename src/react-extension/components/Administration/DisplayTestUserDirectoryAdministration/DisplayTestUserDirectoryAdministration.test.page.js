@@ -12,7 +12,7 @@
  * @since         2.11.0
  */
 import {fireEvent, render, waitFor} from "@testing-library/react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import React from "react";
 import DisplayTestUserDirectoryAdministration from "./DisplayTestUserDirectoryAdministration";
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
@@ -184,7 +184,7 @@ class DisplayTestUserDirectoryAdministrationDialogPageObject {
    * Returns the error textarea element
    */
   get buttonOk() {
-    return this._container.querySelector('.button.primary');
+    return this._container.querySelector('button.primary');
   }
 
   /**

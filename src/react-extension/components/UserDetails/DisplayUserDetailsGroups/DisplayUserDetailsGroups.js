@@ -16,7 +16,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import Icon from "../../../../shared/components/Icons/Icon";
 import {withUserWorkspace} from "../../../contexts/UserWorkspaceContext";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import GroupAvatar from "../../Common/Avatar/GroupAvatar";
 import {Trans, withTranslation} from "react-i18next";
 
@@ -106,11 +106,11 @@ class DisplayUserDetailsGroups extends React.Component {
       <div className={`detailed-user-groups accordion sidebar-section ${this.state.open ? "" : "closed"}`}>
         <div className="accordion-header">
           <h4>
-            <a onClick={this.handleTitleClicked}  role="button">
+            <button type="button" className="link no-border" onClick={this.handleTitleClicked}>
               Groups
               {this.state.open && <Icon name="caret-down"/>}
               {!this.state.open && <Icon name="caret-right"/>}
-            </a>
+            </button>
           </h4>
         </div>
         <div className="accordion-content">
@@ -126,9 +126,7 @@ class DisplayUserDetailsGroups extends React.Component {
                       <div className="subinfo">{group.role}</div>
                     </div>
                   </div>
-                  <GroupAvatar
-                    group={group}
-                    baseUrl={this.baseUrl}/>
+                  <GroupAvatar group={group}/>
                 </li>
               ))
             }

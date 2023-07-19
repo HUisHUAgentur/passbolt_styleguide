@@ -15,7 +15,7 @@
 
 import {fireEvent, render, waitFor} from "@testing-library/react";
 import React from "react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
 import DefineResourceFolderMoveStrategy from "./DefineResourceFolderMoveStrategy";
 
@@ -60,21 +60,21 @@ export default class DefineResourceFolderMoveStrategyPage {
    * Returns true it one can cancel the operation
    */
   get canCancel() {
-    return !Boolean(this._page.container.querySelector('.cancel.disabled')).valueOf();
+    return !this._page.container.querySelector('.cancel').hasAttribute('disabled');
   }
 
   /**
    * Returns true it one can close the dialog
    */
   get canClose() {
-    return !Boolean(this._page.container.querySelector('.dialog-close.disabled')).valueOf();
+    return !this._page.container.querySelector('.dialog-close').hasAttribute('disabled');
   }
 
   /**
    * Returns true it one can submit the create operation
    */
   get canSubmit() {
-    return !Boolean(this._page.container.querySelector('button[type="submit"].disabled')).valueOf();
+    return !this._page.container.querySelector('button[type="submit"]').hasAttribute('disabled');
   }
 
   /**

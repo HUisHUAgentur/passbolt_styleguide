@@ -14,7 +14,7 @@
 
 import React from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import Icon from "../../../../shared/components/Icons/Icon";
 import {withUserWorkspace} from "../../../contexts/UserWorkspaceContext";
 import EditUser from "../EditUser/EditUser";
@@ -28,6 +28,7 @@ import {Trans, withTranslation} from "react-i18next";
 import HandleReviewAccountRecoveryRequestWorkflow
   from "../../AccountRecovery/HandleReviewAccountRecoveryRequestWorkflow/HandleReviewAccountRecoveryRequestWorkflow";
 import {withWorkflow} from "../../../contexts/WorkflowContext";
+import ClipBoard from '../../../../shared/lib/Browser/clipBoard';
 
 /**
  * This component is a container of multiple actions applicable on user
@@ -344,7 +345,7 @@ class DisplayUserWorkspaceActions extends React.Component {
     this.closeMoreMenu();
     const baseUrl = this.props.context.userSettings.getTrustedDomain();
     const permalink = `${baseUrl}/app/users/view/${this.selectedUser.id}`;
-    await this.props.context.port.request("passbolt.clipboard.copy", permalink);
+    await ClipBoard.copy(permalink, this.props.context.port);
     this.props.actionFeedbackContext.displaySuccess(this.translate("The permalink has been copied to clipboard"));
   }
 
@@ -396,34 +397,36 @@ class DisplayUserWorkspaceActions extends React.Component {
           {this.isLoggedInUserAdmin() &&
           <ul>
             <li>
-              <a className={`button ${this.isButtonDisabled() ? "disabled" : ""}`} onClick={this.handleEditClickEvent}>
+              <button type="button" disabled={this.isButtonDisabled()} onClick={this.handleEditClickEvent}>
                 <Icon name="edit"/>
                 <span><Trans>Edit</Trans></span>
-              </a>
+              </button>
             </li>
             <li>
-              <a className={`button ${!this.canDelete ? "disabled" : ""}`} onClick={this.handleDeleteClickEvent}>
+              <button type="button" disabled={!this.canDelete} onClick={this.handleDeleteClickEvent}>
                 <Icon name="trash"/>
                 <span><Trans>Delete</Trans></span>
-              </a>
+              </button>
             </li>
             <div className="dropdown" ref={this.moreMenuRef}>
-              <a
-                className={`button more ${this.state.moreMenuOpen ? "open" : ""} ${this.hasMoreActionAllowed ? "" : "disabled"}`}
+              <button type="button"
+                className={`more ${this.state.moreMenuOpen ? "open" : ""}`}
+                disabled={!this.hasMoreActionAllowed}
                 onClick={this.handleMoreClickEvent}>
                 <span><Trans>More</Trans></span>
                 <Icon name="caret-down"/>
-              </a>
+              </button>
               <ul className={`dropdown-content menu right ${this.state.moreMenuOpen ? "visible" : ""}`}>
                 <li id="copy-user-permalink" className="separator-after">
                   <div className="row">
                     <div className="main-cell-wrapper">
                       <div className="main-cell">
-                        <a
+                        <button type="button"
                           onClick={this.handleCopyPermalinkEvent}
-                          className={`${this.canCopyPermalink ? "" : "disabled"}`}>
+                          disabled={!this.canCopyPermalink}
+                          className="link no-border">
                           <span><Trans>Copy permalink to clipboard</Trans></span>
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -433,10 +436,10 @@ class DisplayUserWorkspaceActions extends React.Component {
                   <div className="row">
                     <div className="main-cell-wrapper">
                       <div className="main-cell">
-                        <a onClick={this.handleResendInviteClickEvent}
-                          className={`${this.canResendInviteToUser ? "" : "disabled"}`}>
+                        <button type="button" onClick={this.handleResendInviteClickEvent}
+                          disabled={!this.canResendInviteToUser} className="link no-border">
                           <span><Trans>Resend invite</Trans></span>
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -447,12 +450,13 @@ class DisplayUserWorkspaceActions extends React.Component {
                   <div className="row">
                     <div className="main-cell-wrapper">
                       <div className="main-cell">
-                        <a
+                        <button type="button"
                           id="disable-mfa"
                           onClick={this.handleDisableMfaEvent}
-                          className={this.canDisableMfaForUser ? '' : 'disabled'}>
+                          disabled={!this.canDisableMfaForUser}
+                          className="link no-border">
                           <span><Trans>Disable MFA</Trans></span>
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -463,12 +467,12 @@ class DisplayUserWorkspaceActions extends React.Component {
                   <div className="row">
                     <div className="main-cell-wrapper">
                       <div className="main-cell">
-                        <a
+                        <button type="button"
                           id="review-recovery"
                           onClick={this.handleReviewRecoveryRequestEvent}
-                          className={`${!this.hasPendingAccountRecoveryRequest() ? "disabled" : ""}`}>
+                          disabled={!this.hasPendingAccountRecoveryRequest()} className="link no-border">
                           <span><Trans>Review recovery request</Trans></span>
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -482,12 +486,12 @@ class DisplayUserWorkspaceActions extends React.Component {
         <div className="actions secondary">
           <ul>
             <li>
-              <a
-                className={`button button-toggle info ${this.hasDetailsLocked() ? "selected" : ""}`}
+              <button type="button"
+                className={`button-toggle info ${this.hasDetailsLocked() ? "selected" : ""}`}
                 onClick={this.handleDetailsLockedEvent}>
                 <Icon name="info-circle" big={true}/>
                 <span className="visuallyhidden"><Trans>View detail</Trans></span>
-              </a>
+              </button>
             </li>
           </ul>
         </div>

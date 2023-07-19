@@ -17,7 +17,7 @@ import {render} from "@testing-library/react";
 import React from "react";
 import {BrowserRouter as Router} from "react-router-dom";
 import AdministrationWorkspace from "./AdministrationWorkspace";
-import AppContext from "../../contexts/AppContext";
+import AppContext from "../../../shared/context/AppContext/AppContext";
 import MockTranslationProvider from "../../test/mock/components/Internationalisation/MockTranslationProvider";
 
 /**
@@ -46,6 +46,13 @@ export default class AdministrationWorkspacePage {
    */
   get isMfaSelected() {
     return Boolean(this._page.container.querySelector('.mfa-details'));
+  }
+
+  /**
+   * Returns true if the mfa policy area is visible
+   */
+  get isMfaPolicySelected() {
+    return Boolean(this._page.container.querySelector('.mfa-policy-settings'));
   }
 
   /**
@@ -81,6 +88,13 @@ export default class AdministrationWorkspacePage {
    */
   get isAccountRecoverySelected() {
     return Boolean(this._page.container.querySelector('.account-recovery-details'));
+  }
+
+  /**
+   * Returns true if the account recovery area is visible
+   */
+  get isSelfRegistrationSelected() {
+    return Boolean(this._page.container.querySelector('.self-registration-details'));
   }
 }
 

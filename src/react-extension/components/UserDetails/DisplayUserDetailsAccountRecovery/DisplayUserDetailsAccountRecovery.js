@@ -17,7 +17,7 @@ import PropTypes from "prop-types";
 import Icon from "../../../../shared/components/Icons/Icon";
 import {Trans, withTranslation} from "react-i18next";
 import {DateTime} from "luxon";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withUserWorkspace} from "../../../contexts/UserWorkspaceContext";
 import HandleReviewAccountRecoveryRequestWorkflow
   from "../../AccountRecovery/HandleReviewAccountRecoveryRequestWorkflow/HandleReviewAccountRecoveryRequestWorkflow";
@@ -192,14 +192,14 @@ class DisplayUserDetailsAccountRecovery extends React.Component {
       <div className={`detailed-account-recovery accordion sidebar-section ${this.state.open ? "" : "closed"}`}>
         <div className="accordion-header">
           <h4>
-            <a onClick={this.handleTitleClicked} role="button">
+            <button className="link no-border" type="button" onClick={this.handleTitleClicked}>
               <Trans>Account recovery</Trans>
               {this.isAccountRecoveryPending &&
                 <Icon name="exclamation" baseline={true}/>
               }
               {this.state.open && <Icon name="caret-down"/>}
               {!this.state.open && <Icon name="caret-right"/>}
-            </a>
+            </button>
           </h4>
         </div>
         <div className="accordion-content">
@@ -214,7 +214,7 @@ class DisplayUserDetailsAccountRecovery extends React.Component {
             {this.isAccountRecoveryPending &&
             <li className="pending-request-status">
               <span className="label"><Trans>Current status</Trans></span>
-              <a className="button" role="button" onClick={this.handleReviewClicked}>Review</a>
+              <button type="button" onClick={this.handleReviewClicked}>Review</button>
             </li>
             }
             <li className="previous-request">

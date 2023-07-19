@@ -14,7 +14,7 @@
 import React from "react";
 import Icon from "../../../../shared/components/Icons/Icon";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import {withUserWorkspace} from "../../../contexts/UserWorkspaceContext";
 import {withAccountRecovery} from "../../../contexts/AccountRecoveryUserContext";
@@ -24,6 +24,7 @@ import DisplayUserDetailsPublicKey from "../DisplayUserDetailsPublicKey/DisplayU
 import UserAvatar from "../../Common/Avatar/UserAvatar";
 import {withTranslation, Trans} from "react-i18next";
 import DisplayUserDetailsAccountRecovery from "../DisplayUserDetailsAccountRecovery/DisplayUserDetailsAccountRecovery";
+import ClipBoard from '../../../../shared/lib/Browser/clipBoard';
 
 class DisplayUserDetails extends React.Component {
   /**
@@ -67,7 +68,7 @@ class DisplayUserDetails extends React.Component {
   async handlePermalinkClick() {
     const baseUrl = this.props.context.userSettings.getTrustedDomain();
     const permalink = `${baseUrl}/app/users/view/${this.user.id}`;
-    await this.props.context.port.request("passbolt.clipboard.copy", permalink);
+    await ClipBoard.copy(permalink, this.props.context.port);
     await this.props.actionFeedbackContext.displaySuccess(this.translate("The permalink has been copied to clipboard"));
   }
 
@@ -128,17 +129,17 @@ class DisplayUserDetails extends React.Component {
             <h3>
               <div className="title-wrapper">
                 <span className="name">{`${this.user.profile.first_name} ${this.user.profile.last_name}`}</span>
-                <a className="title-link" title={this.translate("Copy the link to this user")} onClick={this.handlePermalinkClick}>
+                <button type="button" className="title-link link no-border" title={this.translate("Copy the link to this user")} onClick={this.handlePermalinkClick}>
                   <Icon name="link"/>
                   <span className="visuallyhidden"><Trans>Copy the link to this user</Trans></span>
-                </a>
+                </button>
               </div>
               <span className="subtitle">{this.user.username}</span>
             </h3>
-            <a className="dialog-close" onClick={this.handleCloseClick}>
+            <button type="button" className="dialog-close button-transparent" onClick={this.handleCloseClick}>
               <Icon name="close"/>
               <span className="visuallyhidden"><Trans>Close</Trans></span>
-            </a>
+            </button>
           </div>
           <DisplayUserDetailsInformation/>
           {this.user.active && <DisplayUserDetailsGroups/>}

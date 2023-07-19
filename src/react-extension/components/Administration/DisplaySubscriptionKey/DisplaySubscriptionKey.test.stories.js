@@ -1,10 +1,8 @@
 import React from "react";
 import DisplaySubscriptionKey from "./DisplaySubscriptionKey";
+import {AdminSubscriptionContextProvider} from '../../../contexts/Administration/AdministrationSubscription/AdministrationSubscription';
 import {
-  defaultProps,
-  mockSubscriptionExpired, mockSubscriptionGoingToExpire,
-  mockSubscriptionUsersExceeded,
-  mockUsers
+  defaultProps, expiredProps, goingToExpireProps, notFoundProps, usersExceededProps
 } from "./DisplaySubscriptionKey.test.data";
 
 
@@ -14,58 +12,27 @@ export default {
 };
 
 const Template = args =>
-  <div className="grid grid-responsive-12">
-    <DisplaySubscriptionKey {...args}/>
-  </div>;
+  <AdminSubscriptionContextProvider{...args}>
+    <div className="panel middle">
+      <div className="grid grid-responsive-12">
+        <DisplaySubscriptionKey {...args}/>
+      </div>
+    </div>
+  </AdminSubscriptionContextProvider>
+;
+
 
 export const Initial = Template.bind({});
 Initial.args = defaultProps();
 
-const propsSubscriptionGoingToExpire = {
-  context: {
-    port: {
-      request: () => mockUsers
-    },
-    onGetSubscriptionKeyRequested: () => mockSubscriptionGoingToExpire,
-    setContext: jest.fn()
-  }
-};
 export const SubscriptionGoingToExpire = Template.bind({});
-SubscriptionGoingToExpire.args = defaultProps(propsSubscriptionGoingToExpire);
+SubscriptionGoingToExpire.args = goingToExpireProps();
 
-const propsSubscriptionExpired = {
-  context: {
-    port: {
-      request: () => mockUsers
-    },
-    onGetSubscriptionKeyRequested: () => mockSubscriptionExpired,
-    setContext: jest.fn()
-  }
-};
 export const SubscriptionExpired = Template.bind({});
-SubscriptionExpired.args = defaultProps(propsSubscriptionExpired);
+SubscriptionExpired.args = expiredProps();
 
-const propsSubscriptionUsersExceeded = {
-  context: {
-    port: {
-      request: () => mockUsers
-    },
-    onGetSubscriptionKeyRequested: () => mockSubscriptionUsersExceeded,
-    setContext: jest.fn()
-  }
-};
 export const SubscriptionUsersExceeded = Template.bind({});
-SubscriptionUsersExceeded.args = defaultProps(propsSubscriptionUsersExceeded);
+SubscriptionUsersExceeded.args = usersExceededProps();
 
-
-const propsNoSubscriptionKey = {
-  context: {
-    port: {
-      request: () => mockUsers
-    },
-    onGetSubscriptionKeyRequested: () => {},
-    setContext: jest.fn()
-  }
-};
 export const NoSubscriptionKey = Template.bind({});
-NoSubscriptionKey.args = defaultProps(propsNoSubscriptionKey);
+NoSubscriptionKey.args = notFoundProps();

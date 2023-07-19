@@ -26,10 +26,15 @@ import {
   defaultPropsOneResourceOwned
 } from "./DisplayResourcesWorkspaceMenu.test.data";
 import {ActionFeedbackContext} from "../../../contexts/ActionFeedbackContext";
-import {waitFor} from "@testing-library/dom";
 
 beforeEach(() => {
   jest.resetModules();
+  let clipboardData = ''; //initalizing clipboard data so it can be used in testing
+  const mockClipboard = {
+    writeText: jest.fn(data => clipboardData = data),
+    readText: jest.fn(() => document.activeElement.value = clipboardData),
+  };
+  global.navigator.clipboard = mockClipboard;
 });
 
 describe("See Workspace Menu", () => {
@@ -57,87 +62,94 @@ describe("See Workspace Menu", () => {
       expect(page.displayMenu.moreMenu).not.toBeNull();
       page.displayMenu.clickOnMoreMenu();
       expect(page.displayMenu.dropdownMenuDelete).not.toBeNull();
-      expect(page.displayMenu.dropdownMenuDeleteDisabled).toBeNull();
+      expect(page.displayMenu.hasDropdownMenuDeleteDisabled()).toBeFalsy();
     });
 
     it('As LU I can start editing a resource via the workspace main menu', () => {
       expect(page.displayMenu.exists()).toBeTruthy();
       expect(page.displayMenu.editMenu).not.toBeNull();
-      expect(page.displayMenu.editMenuDisabled).toBeNull();
+      expect(page.displayMenu.hasEditMenuDisabled()).toBeFalsy();
     });
 
-    it('As LU I can start copying a resource\'s permalink via the workspace main menu', () => {
+    it('As LU I can start copying a resource\'s permalink via the workspace main menu', async() => {
+      expect.assertions(6);
       expect(page.displayMenu.exists()).toBeTruthy();
       expect(page.displayMenu.moreMenu).not.toBeNull();
       page.displayMenu.clickOnMoreMenu();
       expect(page.displayMenu.dropdownMenuPermalink).not.toBeNull();
-      expect(page.displayMenu.dropdownMenuPermalinkDisabled).toBeNull();
+      expect(page.displayMenu.hasDropdownMenuPermalinkDisabled()).toBeFalsy();
       // Mock the notification function
       jest.spyOn(ActionFeedbackContext._currentValue, 'displaySuccess').mockImplementation(() => {
       });
 
-      page.displayMenu.clickOnMenu(page.displayMenu.dropdownMenuPermalink);
-      waitFor(() => {
-        expect(ActionFeedbackContext._currentValue.displaySuccess).toHaveBeenCalled();
-      });
+      await page.displayMenu.clickOnMenu(page.displayMenu.dropdownMenuPermalink);
+
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`${context.userSettings.getTrustedDomain()}/app/passwords/view/${propsOneResourceOwned.resourceWorkspaceContext.selectedResources[0].id}`);
+      expect(ActionFeedbackContext._currentValue.displaySuccess).toHaveBeenCalled();
     });
 
-    it('As LU I should be able to copy a resource username from the workspace main menu', () => {
+    it('As LU I should be able to copy a resource username from the workspace main menu', async() => {
       expect(page.displayMenu.exists()).toBeTruthy();
       expect(page.displayMenu.moreMenu).not.toBeNull();
       page.displayMenu.clickOnMoreMenu();
       expect(page.displayMenu.dropdownMenuUsername).not.toBeNull();
-      expect(page.displayMenu.dropdownMenuUsernameDisabled).toBeNull();
+      expect(page.displayMenu.hasDropdownMenuUsernameDisabled()).toBeFalsy();
       // Mock the notification function
       jest.spyOn(ActionFeedbackContext._currentValue, 'displaySuccess').mockImplementation(() => {
       });
 
-      page.displayMenu.clickOnMenu(page.displayMenu.dropdownMenuUsername);
-      waitFor(() => {
-        expect(ActionFeedbackContext._currentValue.displaySuccess).toHaveBeenCalled();
-      });
+      await page.displayMenu.clickOnMenu(page.displayMenu.dropdownMenuUsername);
+
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(propsOneResourceOwned.resourceWorkspaceContext.selectedResources[0].username);
+      expect(ActionFeedbackContext._currentValue.displaySuccess).toHaveBeenCalled();
     });
 
     it('As LU I can start sharing a resource via the workspace main menu', () => {
       expect(page.displayMenu.exists()).toBeTruthy();
       expect(page.displayMenu.shareMenu).not.toBeNull();
-      expect(page.displayMenu.shareMenuDisabled).toBeNull();
+      expect(page.displayMenu.hasShareMenuDisabled()).toBeFalsy();
     });
 
-    it('As LU I should be able to copy a resource secret from the workspace main menu', () => {
+    it('As LU I should be able to copy a resource secret from the workspace main menu', async() => {
+      expect.assertions(5);
       expect(page.displayMenu.copyMenu).not.toBeNull();
-      expect(page.displayMenu.copyMenuDisabled).toBeNull();
+      expect(page.displayMenu.hasCopyMenuDisabled()).toBeFalsy();
       // Mock the notification function
       jest.spyOn(ActionFeedbackContext._currentValue, 'displaySuccess').mockImplementation(() => {
       });
-      page.displayMenu.clickOnMenu(page.displayMenu.copyMenu);
-      waitFor(() => {
-        expect(ActionFeedbackContext._currentValue.displaySuccess).toHaveBeenCalled();
-      });
+      jest.spyOn(context.port, 'request').mockImplementationOnce(() => 'secret-copy');
+
+      await page.displayMenu.clickOnMenu(page.displayMenu.copyMenu);
+
+      expect(context.port.request).toHaveBeenCalledWith('passbolt.secret.decrypt', propsOneResourceOwned.resourceWorkspaceContext.selectedResources[0].id, {showProgress: true});
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('secret-copy');
+      expect(ActionFeedbackContext._currentValue.displaySuccess).toHaveBeenCalled();
     });
 
-    it('As LU I should be able to copy a resource secret from the more menu', () => {
+    it('As LU I should be able to copy a resource secret from the more menu', async() => {
+      expect.assertions(7);
       expect(page.displayMenu.exists()).toBeTruthy();
       expect(page.displayMenu.moreMenu).not.toBeNull();
       page.displayMenu.clickOnMoreMenu();
       expect(page.displayMenu.dropdownMenuSecret).not.toBeNull();
-      expect(page.displayMenu.dropdownMenuSecretDisabled).toBeNull();
+      expect(page.displayMenu.hasDropdownMenuSecretDisabled()).toBeFalsy();
       // Mock the notification function
       jest.spyOn(ActionFeedbackContext._currentValue, 'displaySuccess').mockImplementation(() => {
       });
+      jest.spyOn(context.port, 'request').mockImplementationOnce(() => 'secret-copy');
 
-      page.displayMenu.clickOnMenu(page.displayMenu.dropdownMenuSecret);
-      waitFor(() => {
-        expect(ActionFeedbackContext._currentValue.displaySuccess).toHaveBeenCalled();
-      });
+      await page.displayMenu.clickOnMenu(page.displayMenu.dropdownMenuSecret);
+
+      expect(context.port.request).toHaveBeenCalledWith('passbolt.secret.decrypt', propsOneResourceOwned.resourceWorkspaceContext.selectedResources[0].id, {showProgress: true});
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('secret-copy');
+      expect(ActionFeedbackContext._currentValue.displaySuccess).toHaveBeenCalled();
     });
 
-    it('As LU I can toggle the resource sidebar', () => {
+    it('As LU I can toggle the resource sidebar', async() => {
+      expect.assertions(2);
       expect(page.displayMenu.menuDetailInformationSelected).not.toBeNull();
-      page.displayMenu.clickOnMenu(page.displayMenu.menuDetailInformationSelected);
-      waitFor(() => {
-        expect(propsOneResourceOwned.resourceWorkspaceContext.onLockDetail).toHaveBeenCalled();
-      });
+      await page.displayMenu.clickOnMenu(page.displayMenu.menuDetailInformationSelected);
+      expect(propsOneResourceOwned.resourceWorkspaceContext.onLockDetail).toHaveBeenCalled();
     });
   });
 
@@ -164,12 +176,12 @@ describe("See Workspace Menu", () => {
 
     it('As LU I cannot edit a resource I do not have update permission from the workspace main menu', () => {
       expect(page.displayMenu.exists()).toBeTruthy();
-      expect(page.displayMenu.editMenuDisabled).not.toBeNull();
+      expect(page.displayMenu.hasEditMenuDisabled()).toBeTruthy();
     });
 
     it('As LU I cannot share a resource I do not own from the workspace main menu', () => {
       expect(page.displayMenu.exists()).toBeTruthy();
-      expect(page.displayMenu.shareMenuDisabled).not.toBeNull();
+      expect(page.displayMenu.hasShareMenuDisabled()).toBeTruthy();
     });
 
     it('As LU I can see the toggle button for the detail resource sidebar unselected', () => {
@@ -194,25 +206,25 @@ describe("See Workspace Menu", () => {
 
     it('As LU I should see the delete button disable if nothing is selected', () => {
       expect(page.displayMenu.exists()).toBeTruthy();
-      expect(page.displayMenu.moreMenuDisabled).not.toBeNull();
+      expect(page.displayMenu.hasMoreMenuDisabled()).toBeFalsy();
     });
 
     it('As LU I should see the edit button disable if nothing is selected', () => {
       expect(page.displayMenu.exists()).toBeTruthy();
-      expect(page.displayMenu.editMenuDisabled).not.toBeNull();
+      expect(page.displayMenu.hasEditMenuDisabled()).toBeTruthy();
     });
 
     it('As LU I should see the share button disable if nothing is selected', () => {
       expect(page.displayMenu.exists()).toBeTruthy();
-      expect(page.displayMenu.shareMenuDisabled).not.toBeNull();
+      expect(page.displayMenu.hasShareMenuDisabled()).toBeTruthy();
     });
 
     it('As LU I should see the copy button disable if nothing is selected', () => {
       expect(page.displayMenu.exists()).toBeTruthy();
-      expect(page.displayMenu.copyMenuDisabled).not.toBeNull();
+      expect(page.displayMenu.hasCopyMenuDisabled()).toBeTruthy();
       expect(page.displayMenu.moreMenu).not.toBeNull();
       page.displayMenu.clickOnMoreMenu();
-      expect(page.displayMenu.dropdownMenuSecretDisabled).not.toBeNull();
+      expect(page.displayMenu.hasDropdownMenuSecretDisabled()).toBeTruthy();
     });
   });
 
@@ -233,25 +245,25 @@ describe("See Workspace Menu", () => {
 
     it('As LU I should see the edit button disable if multiple resources is selected', () => {
       expect(page.displayMenu.exists()).toBeTruthy();
-      expect(page.displayMenu.editMenuDisabled).not.toBeNull();
+      expect(page.displayMenu.hasEditMenuDisabled()).toBeTruthy();
     });
 
     it('As LU I should see the copy permalink disable if multiple resources is selected', () => {
       expect(page.displayMenu.exists()).toBeTruthy();
-      expect(page.displayMenu.dropdownMenuPermalinkDisabled).not.toBeNull();
+      expect(page.displayMenu.hasDropdownMenuPermalinkDisabled()).toBeTruthy();
     });
 
     it('As LU I should see the copy username disable if multiple resources is selected', () => {
       expect(page.displayMenu.exists()).toBeTruthy();
-      expect(page.displayMenu.dropdownMenuUsernameDisabled).not.toBeNull();
+      expect(page.displayMenu.hasDropdownMenuUsernameDisabled()).toBeTruthy();
     });
 
     it('As LU I should see the copy button disable if multiple resources is selected', () => {
       expect(page.displayMenu.exists()).toBeTruthy();
-      expect(page.displayMenu.copyMenuDisabled).not.toBeNull();
+      expect(page.displayMenu.hasCopyMenuDisabled()).toBeTruthy();
       expect(page.displayMenu.moreMenu).not.toBeNull();
       page.displayMenu.clickOnMoreMenu();
-      expect(page.displayMenu.dropdownMenuSecretDisabled).not.toBeNull();
+      expect(page.displayMenu.hasDropdownMenuSecretDisabled()).toBeTruthy();
     });
 
     it('As LU I can start deleting multiple resources via the workspace main menu', () => {
@@ -259,7 +271,7 @@ describe("See Workspace Menu", () => {
       expect(page.displayMenu.moreMenu).not.toBeNull();
       page.displayMenu.clickOnMoreMenu();
       expect(page.displayMenu.dropdownMenuDelete).not.toBeNull();
-      expect(page.displayMenu.dropdownMenuDeleteDisabled).toBeNull();
+      expect(page.displayMenu.hasDropdownMenuDeleteDisabled()).toBeFalsy();
     });
   });
 
@@ -279,7 +291,7 @@ describe("See Workspace Menu", () => {
       expect(page.displayMenu.exists()).toBeTruthy();
       expect(page.displayMenu.moreMenu).not.toBeNull();
       page.displayMenu.clickOnMoreMenu();
-      expect(page.displayMenu.dropdownMenuDeleteDisabled).not.toBeNull();
+      expect(page.displayMenu.hasDropdownMenuDeleteDisabled()).toBeTruthy();
     });
   });
 });

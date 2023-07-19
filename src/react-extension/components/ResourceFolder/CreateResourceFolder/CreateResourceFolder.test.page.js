@@ -15,7 +15,7 @@
 
 import {fireEvent, render, waitFor} from "@testing-library/react";
 import React from "react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
 import CreateResourceFolder from "./CreateResourceFolder";
 
@@ -41,9 +41,15 @@ export default class CreateResourceFolderPage {
   /**
    * Set a name to the folder name input
    */
+  get inputName() {
+    return this._page.container.querySelector('#folder-name-input');
+  }
+
+  /**
+   * Set a name to the folder name input
+   */
   set name(value) {
-    const input = this._page.container.querySelector('#folder-name-input');
-    fireEvent.change(input, {target: {value}});
+    fireEvent.change(this.inputName, {target: {value}});
   }
 
   /**
@@ -57,21 +63,21 @@ export default class CreateResourceFolderPage {
    * Returns true it one can cancel the operation
    */
   get canCancel() {
-    return !Boolean(this._page.container.querySelector('.cancel.disabled')).valueOf();
+    return !this._page.container.querySelector('.cancel').hasAttribute('disabled');
   }
 
   /**
    * Returns true it one can close the dialog
    */
   get canClose() {
-    return !Boolean(this._page.container.querySelector('.dialog-close.disabled')).valueOf();
+    return !this._page.container.querySelector('.dialog-close').hasAttribute('disabled');
   }
 
   /**
    * Returns true it one can submit the create operation
    */
   get canSubmit() {
-    return !Boolean(this._page.container.querySelector('button[type="submit"].disabled')).valueOf();
+    return !this._page.container.querySelector('button[type="submit"]').hasAttribute('disabled');
   }
 
   /**
@@ -103,6 +109,13 @@ export default class CreateResourceFolderPage {
   }
 
   /**
+   * Returns the name warning mesage input element
+   */
+  get nameWarningMessage() {
+    return this._page.container.querySelector('.name.warning-message');
+  }
+
+  /**
    * Create a folder with the given information
    * @param folder The folder information to create
    * @param inProgressFn Function called while we wait for React stability
@@ -112,6 +125,17 @@ export default class CreateResourceFolderPage {
     const leftClick = {button: 0};
     fireEvent.click(this.saveButton, leftClick);
     await waitFor(inProgressFn);
+  }
+
+  /** fill the input element with data */
+  fillInput(element, data)  {
+    const dataInputEvent = {target: {value: data}};
+    fireEvent.change(element, dataInputEvent);
+  }
+
+  /** on keypup element */
+  keyUpInput(component)  {
+    fireEvent.keyUp(component, {keyCode: 38});
   }
 
   /**

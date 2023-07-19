@@ -13,7 +13,7 @@
  */
 import React from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withDialog} from "../../../contexts/DialogContext";
 import ContextualMenuWrapper from "../../Common/ContextualMenu/ContextualMenuWrapper";
 import DeleteUserGroupWithConflicts from "../../UserGroup/DeleteUserGroup/DeleteUserGroupWithConflicts";
@@ -144,11 +144,13 @@ class DisplayGroupContextualMenu extends React.Component {
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a
+                <button
+                  type="button"
+                  className="link no-border"
                   id="edit-group"
                   onClick={this.handleEditGroup}>
                   <span><Trans>Edit group</Trans></span>
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -158,11 +160,13 @@ class DisplayGroupContextualMenu extends React.Component {
             <div className="row">
               <div className="main-cell-wrapper">
                 <div className="main-cell">
-                  <a
+                  <button
+                    type="button"
+                    className="link no-border"
                     id="delete-group"
                     onClick={this.handleDeleteClickEvent}>
                     <span><Trans>Delete Group</Trans></span>
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>

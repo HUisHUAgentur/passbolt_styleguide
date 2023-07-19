@@ -12,12 +12,12 @@
  * @since         3.0.0
  */
 import React, {Component} from "react";
-import XRegExp from "xregexp";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withApiTriageContext} from "../../../contexts/ApiTriageContext";
 import FormSubmitButton from "../../Common/Inputs/FormSubmitButton/FormSubmitButton";
 import {Trans, withTranslation} from "react-i18next";
+import AppEmailValidatorService from "../../../../shared/services/validator/AppEmailValidatorService";
 
 class EnterUsernameForm extends Component {
   /**
@@ -194,21 +194,10 @@ class EnterUsernameForm extends Component {
     const username = this.state.username.trim();
     if (!username.length) {
       usernameError = this.translate("A username is required.");
-    } else if (!this.isEmail(username)) {
+    } else if (!AppEmailValidatorService.validate(username, this.props.context.siteSettings)) {
       usernameError = this.translate("Please enter a valid email address.");
     }
     return this.setState({username, usernameError});
-  }
-
-  /**
-   * Check that a username is a valid email
-   * @param {string }username the username to test
-   */
-  isEmail(username) {
-    const hostnameRegexp = "(?:[_\\p{L}0-9][-_\\p{L}0-9]*\\.)*(?:[\\p{L}0-9][-\\p{L}0-9]{0,62})\\.(?:(?:[a-z]{2}\\.)?[a-z]{2,})";
-    const emailRegexp = `^[\\p{L}0-9!#$%&'*+\/=?^_\`{|}~-]+(?:\\.[\\p{L}0-9!#$%&'*+\/=?^_\`{|}~-]+)*@${hostnameRegexp}$`;
-    const xregexp = XRegExp(emailRegexp);
-    return xregexp.test(username);
   }
 
   /**
@@ -315,6 +304,11 @@ class EnterUsernameForm extends Component {
               disabled={this.hasAllInputDisabled()} big={true} processing={this.state.processing} fullWidth={true}
               value={this.translate("Next")}
             />
+            {this.props.isSsoRecoverEnabled &&
+              <button className="link" type="button" onClick={this.props.onSecondaryActionClick}>
+                <Trans>Continue with SSO.</Trans>
+              </button>
+            }
           </div>
         </form>
       </div>
@@ -322,9 +316,15 @@ class EnterUsernameForm extends Component {
   }
 }
 
+EnterUsernameForm.defaultProps = {
+  isSsoRecoverEnabled: false
+};
+
 EnterUsernameForm.propTypes = {
   apiTriageContext: PropTypes.object, // The api triage context
   context: PropTypes.any, // The application context provider
+  isSsoRecoverEnabled: PropTypes.bool.isRequired, // Is the Sso recover plugin enabled
+  onSecondaryActionClick: PropTypes.func, // The callback for the secondary action if any
   t: PropTypes.func, // The translation function
 };
 

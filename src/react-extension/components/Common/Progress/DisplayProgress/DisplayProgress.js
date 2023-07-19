@@ -12,7 +12,7 @@
  * @since         2.12.0
  */
 import React, {Component} from "react";
-import {withAppContext} from "../../../../contexts/AppContext";
+import {withAppContext} from "../../../../../shared/context/AppContext/AppContext";
 import {Trans, withTranslation} from "react-i18next";
 import PropTypes from "prop-types";
 import Icon from "../../../../../shared/components/Icons/Icon";
@@ -160,7 +160,7 @@ class DisplayProgress extends Component {
               </div>
             </div>
             <div className="submit-wrapper clearfix">
-              <a className="button disabled processing">Submit<Icon name="spinner"/></a>
+              <button type="submit" className="disabled processing">Submit<Icon name="spinner"/></button>
             </div>
           </div>
         </div>

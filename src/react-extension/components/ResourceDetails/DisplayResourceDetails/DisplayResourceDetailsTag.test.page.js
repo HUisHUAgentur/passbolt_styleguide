@@ -17,7 +17,7 @@
 import {fireEvent, render, waitFor} from "@testing-library/react";
 import React from "react";
 import {BrowserRouter as Router} from "react-router-dom";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import EditResourceTagsItemViewerPageObject from "../../ResourceTag/EditResourceTags/EditResourceTagsItemViewer.test.page";
 import EditResourceTagsPageObject from "../../ResourceTag/EditResourceTags/EditResourceTags.test.page";
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
@@ -100,7 +100,7 @@ class TitleHeaderPageObject {
    * Returns the clickable area of the header
    */
   get hyperlink() {
-    return this._container.querySelector(".accordion-header h4 a");
+    return this._container.querySelector(".accordion-header h4 button.link");
   }
 
   /** Click on the title */

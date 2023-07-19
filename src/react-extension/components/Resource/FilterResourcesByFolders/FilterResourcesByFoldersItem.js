@@ -16,7 +16,7 @@ import Icon from "../../../../shared/components/Icons/Icon";
 import PropTypes from "prop-types";
 import {withContextualMenu} from "../../../contexts/ContextualMenuContext";
 import FilterResourcesByFoldersItemContextualMenu from "./FilterResourcesByFoldersItemContextualMenu";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {ResourceWorkspaceFilterTypes, withResourceWorkspace} from "../../../contexts/ResourceWorkspaceContext";
 import {withDrag} from "../../../contexts/DragContext";
 import DisplayDragFolderItem from "./DisplayDragFolderItem";
@@ -479,7 +479,7 @@ class FilterResourcesByFoldersItem extends React.Component {
             <div className="main-cell"
               onClick={this.handleSelectEvent}
               onContextMenu={this.handleContextualMenuEvent}>
-              <a role="button">
+              <button className="link no-border" type="button">
                 {hasChildren &&
                 <div className="toggle-folder" onClick={this.handleToggleOpenFolder}>
                   {isOpen &&
@@ -497,12 +497,12 @@ class FilterResourcesByFoldersItem extends React.Component {
                 <Icon name="folder"/>
                 }
                 <span title={this.props.folder.name} className="folder-name">{this.props.folder.name}</span>
-              </a>
+              </button>
             </div>
           </div>
           {!isDragged &&
             <div className="dropdown right-cell more-ctrl">
-              <a className={`button ${this.state.moreMenuOpen ? "open" : ""}`} onClick={this.handleMoreClickEvent}><Icon name="3-dots-h"/></a>
+              <button type="button" className={`${this.state.moreMenuOpen ? "open" : ""}`} onClick={this.handleMoreClickEvent}><Icon name="3-dots-h"/></button>
             </div>
           }
         </div>

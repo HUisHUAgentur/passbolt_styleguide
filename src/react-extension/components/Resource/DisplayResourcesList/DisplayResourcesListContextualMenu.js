@@ -13,7 +13,7 @@
  */
 import React from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withDialog} from "../../../contexts/DialogContext";
 import ContextualMenuWrapper from "../../Common/ContextualMenu/ContextualMenuWrapper";
 import EditResource from "../EditResource/EditResource";
@@ -26,6 +26,9 @@ import {
 } from "../../../contexts/ResourceWorkspaceContext";
 import sanitizeUrl, {urlProtocols} from "../../../lib/Sanitize/sanitizeUrl";
 import {Trans, withTranslation} from "react-i18next";
+import ClipBoard from '../../../../shared/lib/Browser/clipBoard';
+import {uiActions} from "../../../../shared/services/rbacs/uiActionEnumeration";
+import {withRbac} from "../../../../shared/context/Rbac/RbacContext";
 
 class DisplayResourcesListContextualMenu extends React.Component {
   /**
@@ -77,7 +80,7 @@ class DisplayResourcesListContextualMenu extends React.Component {
    * handle username resource
    */
   async handleUsernameClickEvent() {
-    await this.props.context.port.request("passbolt.clipboard.copy", this.resource.username);
+    await ClipBoard.copy(this.resource.username, this.props.context.port);
     this.props.actionFeedbackContext.displaySuccess(this.translate("The username has been copied to clipboard"));
     this.props.hide();
   }
@@ -86,7 +89,7 @@ class DisplayResourcesListContextualMenu extends React.Component {
    * handle uri resource
    */
   async handleUriClickEvent() {
-    await this.props.context.port.request("passbolt.clipboard.copy", this.resource.uri);
+    await ClipBoard.copy(this.resource.uri, this.props.context.port);
     this.props.actionFeedbackContext.displaySuccess(this.translate("The uri has been copied to clipboard"));
     this.props.hide();
   }
@@ -97,7 +100,7 @@ class DisplayResourcesListContextualMenu extends React.Component {
   async handlePermalinkClickEvent() {
     const baseUrl = this.props.context.userSettings.getTrustedDomain();
     const permalink = `${baseUrl}/app/passwords/view/${this.resource.id}`;
-    await this.props.context.port.request("passbolt.clipboard.copy", permalink);
+    await ClipBoard.copy(permalink, this.props.context.port);
     this.props.actionFeedbackContext.displaySuccess(this.translate("The permalink has been copied to clipboard"));
     this.props.hide();
   }
@@ -114,11 +117,11 @@ class DisplayResourcesListContextualMenu extends React.Component {
       throw new TypeError(this.translate("The password is empty."));
     }
     if (typeof plaintextDto === 'string') {
-      await this.props.context.port.request("passbolt.clipboard.copy", plaintextDto);
+      await ClipBoard.copy(plaintextDto, this.props.context.port);
       this.props.resourceWorkspaceContext.onResourceCopied();
     } else {
       if (Object.prototype.hasOwnProperty.call(plaintextDto, 'password')) {
-        await this.props.context.port.request("passbolt.clipboard.copy", plaintextDto.password);
+        await ClipBoard.copy(plaintextDto.password, this.props.context.port);
         this.props.resourceWorkspaceContext.onResourceCopied();
       } else {
         throw new TypeError(this.translate("The password field is not defined."));
@@ -223,6 +226,9 @@ class DisplayResourcesListContextualMenu extends React.Component {
    * @returns {JSX}
    */
   render() {
+    const canCopySecret = this.props.rbacContext.canIUseUiAction(uiActions.SECRETS_COPY);
+    const canViewShare = this.props.rbacContext.canIUseUiAction(uiActions.SHARE_VIEW_LIST);
+
     return (
       <ContextualMenuWrapper
         hide={this.props.hide}
@@ -232,27 +238,30 @@ class DisplayResourcesListContextualMenu extends React.Component {
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a id="username" className={`${this.canCopyUsername() ? "" : "disabled"}`}
-                  onClick={this.handleUsernameClickEvent}><span><Trans>Copy username</Trans></span></a>
+                <button type="button" id="username" className="link no-border"
+                  disabled={!this.canCopyUsername()}
+                  onClick={this.handleUsernameClickEvent}><span><Trans>Copy username</Trans></span></button>
               </div>
             </div>
           </div>
         </li>
-        <li key="option-copy-password-resource" className="ready">
-          <div className="row">
-            <div className="main-cell-wrapper">
-              <div className="main-cell">
-                <a id="password" onClick={this.handlePasswordClickEvent}><span><Trans>Copy password</Trans></span></a>
+        {canCopySecret &&
+          <li key="option-copy-password-resource" className="ready">
+            <div className="row">
+              <div className="main-cell-wrapper">
+                <div className="main-cell">
+                  <button type="button" className="link no-border" id="password" onClick={this.handlePasswordClickEvent}><span><Trans>Copy password</Trans></span></button>
+                </div>
               </div>
             </div>
-          </div>
-        </li>
+          </li>
+        }
         <li key="option-copy-uri-resource" className="ready">
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a id="username" className={`${this.canCopyUri() ? "" : "disabled"}`}
-                  onClick={this.handleUriClickEvent}><span><Trans>Copy URI</Trans></span></a>
+                <button type="button" id="uri" className="link no-border" disabled={!this.canCopyUri()}
+                  onClick={this.handleUriClickEvent}><span><Trans>Copy URI</Trans></span></button>
               </div>
             </div>
           </div>
@@ -261,7 +270,7 @@ class DisplayResourcesListContextualMenu extends React.Component {
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a id="permalink" onClick={this.handlePermalinkClickEvent}><span><Trans>Copy permalink</Trans></span></a>
+                <button className="link no-border" type="button" id="permalink" onClick={this.handlePermalinkClickEvent}><span><Trans>Copy permalink</Trans></span></button>
               </div>
             </div>
           </div>
@@ -270,9 +279,12 @@ class DisplayResourcesListContextualMenu extends React.Component {
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a id="permalink"
-                  className={`${this.safeUri ? "" : "disabled"}`}
-                  onClick={this.handleGoToResourceUriClick}><span><Trans>Open URI in a new Tab</Trans></span></a>
+                <button
+                  type="button"
+                  id="open-uri"
+                  className="link no-border"
+                  disabled={!this.safeUri}
+                  onClick={this.handleGoToResourceUriClick}><span><Trans>Open URI in a new Tab</Trans></span></button>
               </div>
             </div>
           </div>
@@ -281,30 +293,36 @@ class DisplayResourcesListContextualMenu extends React.Component {
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a id="edit" className={`${this.canUpdate() ? "" : "disabled"}`}
-                  onClick={this.handleEditClickEvent}><span><Trans>Edit</Trans></span></a>
+                <button type="button" id="edit" className="link no-border" disabled={!this.canUpdate()}
+                  onClick={this.handleEditClickEvent}><span><Trans>Edit</Trans></span></button>
               </div>
             </div>
           </div>
         </li>
-        <li key="option-share-resource" className="ready">
-          <div className="row">
-            <div className="main-cell-wrapper">
-              <div className="main-cell">
-                <a
-                  id="share" className={`${this.canShare() ? "" : "disabled"}`}
-                  onClick={this.handleShareClickEvent}><span><Trans>Share</Trans></span></a>
+        {canViewShare &&
+          <li key="option-share-resource" className="ready">
+            <div className="row">
+              <div className="main-cell-wrapper">
+                <div className="main-cell">
+                  <button
+                    type="button"
+                    id="share" className="link no-border"
+                    disabled={!this.canShare()}
+                    onClick={this.handleShareClickEvent}><span><Trans>Share</Trans></span></button>
+                </div>
               </div>
             </div>
-          </div>
-        </li>
+          </li>
+        }
         <li key="option-delete-resource" className="ready">
           <div className="row">
             <div className="main-cell-wrapper">
               <div className="main-cell">
-                <a
-                  id="delete" className={`${this.canUpdate() ? "" : "disabled"}`}
-                  onClick={this.handleDeleteClickEvent}><span><Trans>Delete</Trans></span></a>
+                <button
+                  type="button"
+                  id="delete" className="link no-border"
+                  disabled={!this.canUpdate()}
+                  onClick={this.handleDeleteClickEvent}><span><Trans>Delete</Trans></span></button>
               </div>
             </div>
           </div>
@@ -316,6 +334,7 @@ class DisplayResourcesListContextualMenu extends React.Component {
 
 DisplayResourcesListContextualMenu.propTypes = {
   context: PropTypes.any, // The application context
+  rbacContext: PropTypes.any, // The role based access control context
   hide: PropTypes.func, // Hide the contextual menu
   left: PropTypes.number, // left position in px of the page
   top: PropTypes.number, // top position in px of the page
@@ -326,4 +345,4 @@ DisplayResourcesListContextualMenu.propTypes = {
   t: PropTypes.func, // The translation function
 };
 
-export default withAppContext(withResourceWorkspace(withDialog(withActionFeedback(withTranslation('common')(DisplayResourcesListContextualMenu)))));
+export default withAppContext(withRbac(withResourceWorkspace(withDialog(withActionFeedback(withTranslation('common')(DisplayResourcesListContextualMenu))))));

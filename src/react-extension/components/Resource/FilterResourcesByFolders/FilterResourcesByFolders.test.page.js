@@ -13,7 +13,7 @@
  * @since         2.11.0
  */
 import {fireEvent, render, waitFor} from "@testing-library/react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import React from "react";
 import {BrowserRouter as Router} from 'react-router-dom';
 import {FilterResourcesByFoldersItemPageObject} from "./FilterResourcesByFoldersItem.test.page";
@@ -92,7 +92,7 @@ class TitleHeaderPageObject {
    * Returns the clickable area of the header
    */
   get hyperlink() {
-    return this._container.querySelectorAll(".folders-label a")[0];
+    return this._container.querySelectorAll(".folders-label button")[0];
   }
 
   /** Click on the component */
@@ -123,7 +123,7 @@ class FilterResourcesByFoldersPageObject {
    * Returns the root folder
    */
   get rootFolder() {
-    return this._container.querySelectorAll('.folders-label a')[0];
+    return this._container.querySelectorAll('.folders-label button')[0];
   }
 
   /**
@@ -144,7 +144,7 @@ class FilterResourcesByFoldersPageObject {
    * Returns the more button root folder
    */
   get moreButton() {
-    return this._container.querySelector('.accordion-header .node.root .row.title .right-cell.more-ctrl a');
+    return this._container.querySelector('.accordion-header .node.root .row.title .right-cell.more-ctrl button');
   }
 
   /**

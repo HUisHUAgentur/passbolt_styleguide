@@ -14,7 +14,7 @@
  */
 
 import {fireEvent, render, waitFor} from "@testing-library/react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import React from "react";
 import PropTypes from "prop-types";
 import ManageDialogs from "../../Common/Dialog/ManageDialogs/ManageDialogs";
@@ -111,6 +111,14 @@ class DeleteResourcePageObject {
   get errorDialogMessage() {
     return this._container.querySelector('.error-dialog .dialog .dialog-content .form-content');
   }
+
+  /**
+   * Returns the tag name input element
+   */
+  get tagName() {
+    return this._container.querySelector('.form-content p strong');
+  }
+
 
   /**
    * Returns true if the page object exists in the container

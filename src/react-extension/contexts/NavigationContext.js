@@ -13,7 +13,7 @@
  */
 import * as React from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "./AppContext";
+import {withAppContext} from "../../shared/context/AppContext/AppContext";
 import {withRouter} from "react-router-dom";
 
 /**
@@ -23,6 +23,8 @@ export const NavigationContext = React.createContext({
   // Administration
   onGoToAdministrationRequested: () => {
   }, // Whenever the users wants to navigate to the administration workspace
+  onGoToAdministrationSelfRegistrationRequested: () => {
+  }, // Whenever the users wants to navigate to the administration workspace self registration
   onGoToAdministrationMfaRequested: () => {
   }, // Whenever the users wants to navigate to the administration workspace mfa
   onGoToAdministrationUsersDirectoryRequested: () => {
@@ -35,6 +37,10 @@ export const NavigationContext = React.createContext({
   }, // Whenever the users wants to navigate to the administration workspace internationalization
   onGoToAdministrationAccountRecoveryRequested: () => {
   }, // Whenever the users wants to navigate to the administration workspace account recovery
+  onGoToAdministrationSmtpSettingsRequested: () => {
+  }, // Whenever the users wants to navigate to the administration workspace SMTP settings
+  onGoToAdministrationSsoRequested: () => {
+  }, // Whenever the user wants to navigate to the administration workspace sso
   // Passwords
   onGoToPasswordsRequested: () => {
   }, // Whenever the user wants to navigate to the passwords workspace
@@ -60,6 +66,8 @@ export const NavigationContext = React.createContext({
   }, // Whenever the user wants to navigate to the users settings workspace mobile section.
   onGoToNewTab: () => {
   }, // Whenever the user want to navigate to a new url.
+  onGoToAdministrationRbacsRequested: () => {
+  }, // Whenever the user wants to navigate to the administration workspace rbacs section.
 });
 
 /**
@@ -90,6 +98,10 @@ class NavigationContextProvider extends React.Component {
       onGoToAdministrationSubscriptionRequested: this.onGoToAdministrationSubscriptionRequested.bind(this), // Whenever the user wants to navigate to the administration workspace subscription
       onGoToAdministrationInternationalizationRequested: this.onGoToAdministrationInternationalizationRequested.bind(this), // Whenever the user wants to navigate to the administration workspace internationalization
       onGoToAdministrationAccountRecoveryRequested: this.onGoToAdministrationAccountRecoveryRequested.bind(this), // Whenever the user wants to navigate to the administration workspace account recovery
+      onGoToAdministrationSmtpSettingsRequested: this.onGoToAdministrationSmtpSettingsRequested.bind(this), // Whenever the users wants to navigate to the administration workspace SMTP settings
+      onGoToAdministrationSelfRegistrationRequested: this.onGoToAdministrationSelfRegistrationRequested.bind(this), //Whenever the users wants to navigate to the administration workspace self registration settings
+      onGoToAdministrationSsoRequested: this.onGoToAdministrationSsoRequested.bind(this), // Whenever the user wants to navigate to the administration workspace sso
+      onGoToAdministrationMfaPolicyRequested: this.onGoToAdministrationMfaPolicyRequested.bind(this), // Whenever the user wants to navigate to the administration workspace internationalization
       // Passwords
       onGoToPasswordsRequested: this.onGoToPasswordsRequested.bind(this), // Whenever the user wants to navigate to the passwords workspace
       // Users
@@ -103,6 +115,7 @@ class NavigationContextProvider extends React.Component {
       onGoToUserSettingsKeysRequested: this.onGoToUserSettingsKeysRequested.bind(this), // Whenever the user wants to navigate to the users settings workspace keys section.
       onGoToUserSettingsMobileRequested: this.onGoToUserSettingsMobileRequested.bind(this), // Whenever the user wants to navigate to the users settings workspace mobile section.
       onGoToUserSettingsAccountRecoveryRequested: this.onGoToUserSettingsAccountRecoveryRequested.bind(this), // Whenever the user wants to navigate to the users settings workspace account recovery section.
+      onGoToAdministrationRbacsRequested: this.onGoToAdministrationRbacsRequested.bind(this), // Whenever the user wants to navigate to the administration workspace rbacs section.
     };
   }
 
@@ -146,6 +159,10 @@ class NavigationContextProvider extends React.Component {
       pathname = "/app/administration/mfa";
     } else if (this.isUserDirectoryEnabled) {
       pathname = "/app/administration/users-directory";
+    } else if (this.isSmtpSettingsEnable) {
+      pathname = "/app/administration/smtp-settings";
+    } else if (this.isSelfRegistrationEnable) {
+      pathname = "/app/administration/self-registation";
     }
     await this.goTo("api", pathname);
   }
@@ -157,6 +174,23 @@ class NavigationContextProvider extends React.Component {
   async onGoToAdministrationMfaRequested() {
     await this.goTo("api", "/app/administration/mfa");
   }
+
+  /**
+   * Whenever the user wants to navigate to the administration workspace mfa policy.
+   * @returns {Promise<void>}
+   */
+  async onGoToAdministrationMfaPolicyRequested() {
+    await this.goTo("api", "/app/administration/mfa-policy");
+  }
+
+  /**
+   * Whenever the user wants to navigate to the administration workspace selft registration.
+   * @returns {Promise<void>}
+   */
+  async onGoToAdministrationSelfRegistrationRequested() {
+    await this.goTo("api", "/app/administration/self-registration");
+  }
+
 
   /**
    * Whenever the user wants to navigate to the administration workspace users directory.
@@ -172,6 +206,14 @@ class NavigationContextProvider extends React.Component {
    */
   async onGoToAdministrationEmailNotificationsRequested() {
     await this.goTo("api", "/app/administration/email-notification");
+  }
+
+  /**
+   * Whenever the user wants to navigate to the administration workspace email notifications.
+   * @returns {Promise<void>}
+   */
+  async onGoToAdministrationSmtpSettingsRequested() {
+    await this.goTo("api", "/app/administration/smtp-settings");
   }
 
   /**
@@ -199,6 +241,22 @@ class NavigationContextProvider extends React.Component {
   }
 
   /**
+   * Whenever the user wants to navigate to the administration workspace sso.
+   * @returns {Promise<void>}
+   */
+  async onGoToAdministrationSsoRequested() {
+    await this.goTo("browser-extension", "/app/administration/sso");
+  }
+
+  /**
+   * Whenever the user wants to navigate to the administration workspace rbac.
+   * @returns {Promise<void>}
+   */
+  async onGoToAdministrationRbacsRequested() {
+    await this.goTo("api", "/app/administration/rbacs");
+  }
+
+  /**
    * Returns true if the user has the MFA capability
    * @returns {boolean}
    */
@@ -214,6 +272,24 @@ class NavigationContextProvider extends React.Component {
   get isUserDirectoryEnabled() {
     const siteSettings = this.props.context.siteSettings;
     return siteSettings && siteSettings.canIUse('directorySync');
+  }
+
+  /**
+   * Returns true if the user has the SMTP settings capability
+   * @returns {boolean}
+   */
+  get isSmtpSettingsEnable() {
+    const siteSettings = this.props.context.siteSettings;
+    return siteSettings && siteSettings.canIUse('smtpSettings');
+  }
+
+  /**
+   * Returns true if the user has the self registration enabled
+   * @returns {boolean}
+   */
+  get isSelfRegistrationEnable() {
+    const siteSettings = this.props.context.siteSettings;
+    return siteSettings && siteSettings.canIUse('selfRegistration');
   }
 
   /*

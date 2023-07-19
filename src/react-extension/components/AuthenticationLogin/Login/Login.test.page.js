@@ -83,7 +83,14 @@ export default class LoginPage {
    * Returns the secondary action link element
    */
   get secondaryActionLink() {
-    return this._page.container.querySelector('.form-actions a');
+    return this._page.container.querySelector('.form-actions button.link');
+  }
+
+  /**
+   * Returns the Azure SSO login button element
+   */
+  get azureLoginButton() {
+    return this._page.container.querySelector('.sso-login-form .sso-login-button');
   }
 
   /**
@@ -150,6 +157,15 @@ export default class LoginPage {
   async clickSecondaryActionLink(inProgressFn = () => {}) {
     const leftClick = {button: 0};
     fireEvent.click(this.secondaryActionLink, leftClick);
+    await waitFor(inProgressFn);
+  }
+
+  /**
+   * Click on the secondary action link.
+   */
+  async clickOnSsoLogin(inProgressFn = () => {}) {
+    const leftClick = {button: 0};
+    fireEvent.click(this.azureLoginButton, leftClick);
     await waitFor(inProgressFn);
   }
 }

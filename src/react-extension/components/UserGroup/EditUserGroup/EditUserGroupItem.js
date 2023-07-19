@@ -13,7 +13,7 @@
  */
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import UserAvatar from "../../Common/Avatar/UserAvatar";
 import Icon from "../../../../shared/components/Icons/Icon";
 import {Trans, withTranslation} from "react-i18next";
@@ -160,13 +160,15 @@ class EditUserGroupItem extends Component {
             </div>
 
             <div className="actions">
-              <a
+              <button
+                type="button"
                 title={this.props.t("Remove")}
-                className={`remove-item button button-transparent ${!this.props.areActionsAllowed ? "disabled" : ""}`}
+                className="remove-item button-transparent"
+                disabled={!this.props.areActionsAllowed}
                 onClick={event => this.props.onMemberRemoved(event, this.props.groupUser)}>
                 <Icon name="close"/>
                 <span className="visuallyhidden"><Trans>Remove</Trans></span>
-              </a>
+              </button>
             </div>
           </>
         }

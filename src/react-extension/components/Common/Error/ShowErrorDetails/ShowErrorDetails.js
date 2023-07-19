@@ -99,10 +99,10 @@ class ShowErrorDetails extends Component {
     return (
       <div className="accordion error-details">
         <div className="accordion-header">
-          <a onClick={this.handleErrorDetailsToggle}>
+          <button type="button" className="link no-border" onClick={this.handleErrorDetailsToggle}>
             <Icon baseline={true} name={this.state.showErrorDetails ? "caret-down" : "caret-right"}/>
             <Trans>Error details</Trans>
-          </a>
+          </button>
         </div>
         {this.state.showErrorDetails &&
         <div className="accordion-content">

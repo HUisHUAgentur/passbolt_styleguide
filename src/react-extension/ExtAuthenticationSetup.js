@@ -13,7 +13,7 @@
  */
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import AppContext from "./contexts/AppContext";
+import AppContext from "../shared/context/AppContext/AppContext";
 import TranslationProvider from "./components/Common/Internationalisation/TranslationProvider";
 import AuthenticationSetupContextProvider from "./contexts/Authentication/AuthenticationSetupContext";
 import SiteSettings from "../shared/lib/Settings/SiteSettings";
@@ -117,7 +117,7 @@ class ExtAuthenticationSetup extends Component {
     return (
       <AppContext.Provider value={this.state}>
         {this.isReady() &&
-        <TranslationProvider loadingPath="/data/locales/{{lng}}/{{ns}}.json">
+        <TranslationProvider loadingPath="/webAccessibleResources/locales/{{lng}}/{{ns}}.json">
           <AuthenticationSetupContextProvider>
             <div id="container" className="container page login">
               <div className="content">

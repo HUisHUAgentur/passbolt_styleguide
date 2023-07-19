@@ -14,7 +14,7 @@
 import PropTypes from "prop-types";
 import React from "react";
 import ReactList from "react-list";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {
   resourceLinkAuthorizedProtocols,
   ResourceWorkspaceFilterTypes,
@@ -31,6 +31,10 @@ import {Trans, withTranslation} from "react-i18next";
 import {DateTime} from "luxon";
 import {withDrag} from "../../../contexts/DragContext";
 import DisplayDragResource from "./DisplayDragResource";
+import ClipBoard from '../../../../shared/lib/Browser/clipBoard';
+import {withRbac} from "../../../../shared/context/Rbac/RbacContext";
+import {uiActions} from "../../../../shared/services/rbacs/uiActionEnumeration";
+import HiddenPassword from "../../../../shared/components/Password/HiddenPassword";
 
 /**
  * This component allows to display the filtered resources into a grid
@@ -203,14 +207,6 @@ class DisplayResourcesList extends React.Component {
   }
 
   /**
-   * Returns true if the logged in user can use the preview password capability.
-   * @returns {boolean}
-   */
-  get canUsePreviewPassword() {
-    return this.props.context.siteSettings.canIUse('previewPassword');
-  }
-
-  /**
    * Returns true if the given resource is selected
    * @param resource A resource
    */
@@ -221,18 +217,15 @@ class DisplayResourcesList extends React.Component {
   async handleCopyUsernameClick(ev, resource) {
     // Avoid the grid to select the resource while copying a resource username.
     ev.stopPropagation();
-
-    await this.props.context.port.request("passbolt.clipboard.copy", resource.username);
+    await ClipBoard.copy(resource.username, this.props.context.port);
     this.props.actionFeedbackContext.displaySuccess(this.translate("The username has been copied to clipboard"));
   }
 
   /**
    * Handle copy password button click.
+   * @param {ResourceEntity} resource The resource to copy the secret
    */
-  async handleCopyPasswordClick(ev, resource) {
-    // Avoid the grid to select the resource while copying a resource secret.
-    ev.stopPropagation();
-
+  async handleCopyPasswordClick(resource) {
     await this.copyPasswordToClipboard(resource.id);
   }
 
@@ -288,7 +281,7 @@ class DisplayResourcesList extends React.Component {
         return;
       }
     }
-    await this.props.context.port.request("passbolt.clipboard.copy", password);
+    await ClipBoard.copy(password, this.props.context.port);
     await this.props.resourceWorkspaceContext.onResourceCopied();
     await this.props.actionFeedbackContext.displaySuccess(this.translate("The secret has been copied to clipboard"));
   }
@@ -527,6 +520,9 @@ class DisplayResourcesList extends React.Component {
   }
 
   renderItem(index, key) {
+    const canPreviewSecret = this.props.context.siteSettings.canIUse('previewPassword')
+      && this.props.rbacContext.canIUseUiAction(uiActions.SECRETS_PREVIEW);
+    const canCopySecret = this.props.rbacContext.canIUseUiAction(uiActions.SECRETS_COPY);
     const resource = this.resources[index];
     const isSelected = this.isResourceSelected(resource);
     const isFavorite = resource.favorite !== null && resource.favorite !== undefined;
@@ -536,7 +532,9 @@ class DisplayResourcesList extends React.Component {
 
     return (
       <tr id={`resource_${resource.id}`} key={key} draggable="true" className={isSelected ? "selected" : ""}
+        /* eslint-disable react/no-unknown-property */
         unselectable={this.state.selectStrategy === "range" ? "on" : ""}
+        /* eslint-enable react/no-unknown-property */
         onClick={ev => this.handleResourceSelected(ev, resource)}
         onContextMenu={ev => this.handleResourceRightClick(ev, resource)}
         onDragStart={event => this.handleDragStartEvent(event, resource)}
@@ -551,10 +549,10 @@ class DisplayResourcesList extends React.Component {
         </td>
         <td className="cell-favorite selections s-cell">
           <div className="ready">
-            <a className={`no-text ${isFavorite ? "fav" : "unfav"}`} onClick={ev => this.handleFavoriteClick(ev, resource)}>
+            <button type="button" className={`link no-border no-text ${isFavorite ? "fav" : "unfav"}`} onClick={ev => this.handleFavoriteClick(ev, resource)}>
               <Icon name="star"/>
               <span className="visuallyhidden"><Trans>fav</Trans></span>
-            </a>
+            </button>
           </div>
         </td>
         <td className="cell-name m-cell uri">
@@ -564,30 +562,28 @@ class DisplayResourcesList extends React.Component {
         </td>
         <td className="cell-username m-cell username">
           <div title={resource.username}>
-            <a onClick={ev => this.handleCopyUsernameClick(ev, resource)}>{resource.username}</a>
+            <button className="link no-border" type="button" onClick={ev => this.handleCopyUsernameClick(ev, resource)}><span>{resource.username}</span></button>
           </div>
         </td>
         <td className="cell-secret m-cell password">
           <div className={`secret ${isPasswordPreviewed ? "" : "secret-copy"}`}
             title={isPasswordPreviewed ? this.state.previewedPassword.password : "secret"}>
-            <a onClick={async ev => this.handleCopyPasswordClick(ev, resource)}>
-              <span>
-                {isPasswordPreviewed && this.state.previewedPassword.password}
-                {!isPasswordPreviewed && "Copy password to clipboard"}
-              </span>
-            </a>
+            <HiddenPassword
+              canClick={canCopySecret}
+              preview={this.state.previewedPassword?.password}
+              onClick={() => this.handleCopyPasswordClick(resource)} />
           </div>
-          {this.canUsePreviewPassword &&
-            <a onClick={async ev => this.handlePreviewPasswordButtonClick(ev, resource.id)} className="password-view button button-transparent">
+          {canPreviewSecret &&
+            <button type="button" onClick={async ev => this.handlePreviewPasswordButtonClick(ev, resource.id)} className="password-view button-transparent">
               <Icon name={this.isPasswordPreviewed(resource.id) ? 'eye-close' : 'eye-open'}/>
               <span className="visually-hidden"><Trans>View</Trans></span>
-            </a>
+            </button>
           }
         </td>
         <td className="cell-uri l-cell">
           <div title={resource.uri}>
             {safeUri &&
-            <a onClick={() => this.handleGoToResourceUriClick(resource)}>{resource.uri}</a>
+              <button className="link no-border" type="button" onClick={() => this.handleGoToResourceUriClick(resource)}><span>{resource.uri}</span></button>
             }
             {!safeUri &&
             <span>{resource.uri}</span>
@@ -686,7 +682,7 @@ class DisplayResourcesList extends React.Component {
                       </div>
                     </th>
                     <th className="cell-favorite selections s-cell sortable">
-                      <a onClick={ev => this.handleSortByColumnClick(ev, "favorite")} className="unfav">
+                      <button type="button" onClick={ev => this.handleSortByColumnClick(ev, "favorite")} className="unfav link no-border">
                         <Icon name="star"/>
                         <span className="visuallyhidden"><Trans>fav</Trans></span>
                         <span className="cell-header-icon-sort">
@@ -697,10 +693,10 @@ class DisplayResourcesList extends React.Component {
                           <Icon name="descending"/>
                           }
                         </span>
-                      </a>
+                      </button>
                     </th>
                     <th className="cell-name m-cell sortable">
-                      <a onClick={ev => this.handleSortByColumnClick(ev, "name")}>
+                      <button className="link no-border" type="button" onClick={ev => this.handleSortByColumnClick(ev, "name")}>
                         <div className="cell-header">
                           <span className="cell-header-text">
                             <Trans>Resource</Trans>
@@ -714,10 +710,10 @@ class DisplayResourcesList extends React.Component {
                             }
                           </span>
                         </div>
-                      </a>
+                      </button>
                     </th>
                     <th className="cell-username m-cell username sortable">
-                      <a onClick={ev => this.handleSortByColumnClick(ev, "username")}>
+                      <button className="link no-border" type="button" onClick={ev => this.handleSortByColumnClick(ev, "username")}>
                         <div className="cell-header">
                           <span className="cell-header-text">
                             <Trans>Username</Trans>
@@ -731,7 +727,7 @@ class DisplayResourcesList extends React.Component {
                             }
                           </span>
                         </div>
-                      </a>
+                      </button>
                     </th>
                     <th className="cell-secret m-cell password">
                       <div className="cell-header">
@@ -741,7 +737,7 @@ class DisplayResourcesList extends React.Component {
                       </div>
                     </th>
                     <th className="cell-uri l-cell sortable">
-                      <a onClick={ev => this.handleSortByColumnClick(ev, "uri")}>
+                      <button className="link no-border" type="button"  onClick={ev => this.handleSortByColumnClick(ev, "uri")}>
                         <div className="cell-header">
                           <span className="cell-header-text">
                             <Trans>URI</Trans>
@@ -755,10 +751,10 @@ class DisplayResourcesList extends React.Component {
                             }
                           </span>
                         </div>
-                      </a>
+                      </button>
                     </th>
                     <th className="cell-modified m-cell sortable">
-                      <a onClick={ev => this.handleSortByColumnClick(ev, "modified")}>
+                      <button className="link no-border" type="button"  onClick={ev => this.handleSortByColumnClick(ev, "modified")}>
                         <div className="cell-header">
                           <span className="cell-header-text">
                             <Trans>Modified</Trans>
@@ -772,7 +768,7 @@ class DisplayResourcesList extends React.Component {
                             }
                           </span>
                         </div>
-                      </a>
+                      </button>
                     </th>
                   </tr>
                 </thead>
@@ -799,9 +795,9 @@ class DisplayResourcesList extends React.Component {
   }
 }
 
-
 DisplayResourcesList.propTypes = {
   context: PropTypes.any, // The app context
+  rbacContext: PropTypes.any, // The role based access control context
   resourceWorkspaceContext: PropTypes.any,
   actionFeedbackContext: PropTypes.any, // The action feedback context
   contextualMenuContext: PropTypes.any, // The contextual menu context
@@ -810,4 +806,4 @@ DisplayResourcesList.propTypes = {
   t: PropTypes.func, // The translation function
 };
 
-export default withAppContext(withRouter(withActionFeedback(withContextualMenu(withResourceWorkspace(withDrag(withTranslation('common')(DisplayResourcesList)))))));
+export default withAppContext(withRouter(withRbac(withActionFeedback(withContextualMenu(withResourceWorkspace(withDrag(withTranslation('common')(DisplayResourcesList))))))));

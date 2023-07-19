@@ -1,7 +1,4 @@
 .navigation-secondary-tree {
-    &:last-child {
-      padding-bottom: 6rem;
-    }
     li {
         .row.no-child {
             padding-left: 1.8rem;
@@ -9,8 +6,6 @@
     }
     .row {
         .main-cell-wrapper {
-            width: calc(100% - 4.9rem);
-
             .main-cell {
                 span {
                     .ellipsis();
@@ -31,10 +26,6 @@
                     -o-text-overflow: inherit;
                     -ms-text-overflow: inherit;
 
-                    &.caret-right {
-                        margin-right: 1.2rem;
-                    }
-
                     &.folder-shared, &.folder,
                     &.folders, &.folder-root {
                       svg {
@@ -48,9 +39,10 @@
                     display: none;
                 }
 
-                a {
+                button {
                     padding: 0;
                     margin: 0 0 0 2.4rem;
+                    width: calc(100% - 3.2rem);
 
                     .tag-name {
                         margin-left: 1rem;
@@ -68,7 +60,7 @@
                     margin:0;
 
                     .folders-label {
-                        a {
+                        button {
                           cursor: pointer;
                           padding: 0;
                           margin-left: 1.6rem;
@@ -94,7 +86,7 @@
                     text-shadow: none;
                     font-weight: normal;
                 }
-                a:before {
+                button:before {
                     color: @text-light-color;
                 }
             }

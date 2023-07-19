@@ -16,7 +16,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import Icon from "../../../../shared/components/Icons/Icon";
 import {withUserWorkspace} from "../../../contexts/UserWorkspaceContext";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import DisplayUserGroupDetailsMembersGroupMember from "./DisplayUserGroupDetailsMembersGroupMember";
 import EditUserGroup from "../EditUserGroup/EditUserGroup";
 import {withDialog} from "../../../contexts/DialogContext";
@@ -98,18 +98,18 @@ class DisplayUserGroupDetailsMembers extends React.Component {
       <div className={`detailed-information accordion sidebar-section ${this.state.open ? "" : "closed"}`}>
         <div className="accordion-header">
           <h4>
-            <a onClick={this.handleTitleClicked}  role="button">
+            <button type="button" className="link no-border" onClick={this.handleTitleClicked}>
               <Trans>Group members</Trans>
               {this.state.open && <Icon name="caret-down"/>}
               {!this.state.open && <Icon name="caret-right"/>}
-            </a>
+            </button>
           </h4>
         </div>
         <div className="accordion-content">
-          <a className="section-action button button-transparent" onClick={this.handleEditGroup}>
+          <button type="button" className="section-action button-transparent" onClick={this.handleEditGroup}>
             <Icon name="edit"/>
             <span className="visuallyhidden"><Trans>Edit</Trans></span>
-          </a>
+          </button>
           {this.isLoading() &&
           <div className="processing-wrapper">
             <Icon name="spinner"/>

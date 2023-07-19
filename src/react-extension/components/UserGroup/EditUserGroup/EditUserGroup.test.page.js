@@ -12,7 +12,7 @@
  * @since         2.11.0
  */
 import {fireEvent, render, waitFor} from "@testing-library/react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import React from "react";
 import ManageDialogs from "../../Common/Dialog/ManageDialogs/ManageDialogs";
 import DialogContextProvider from "../../../contexts/DialogContext";
@@ -45,10 +45,17 @@ export default class EditUserGroupTestPage {
   }
 
   /**
+   * Returns the name input element
+   */
+  get name() {
+    return this._page.container.querySelector('#group-name-input');
+  }
+
+  /**
    * Return the group name input
    */
   get groupName() {
-    return this._page.container.querySelector('#group-name-input').value;
+    return this.name.value;
   }
 
   /**
@@ -108,6 +115,13 @@ export default class EditUserGroupTestPage {
   }
 
   /**
+   * Returns the name warning mesage input element
+   */
+  get nameWarningMessage() {
+    return this._page.container.querySelector('.name.warning-message');
+  }
+
+  /**
    * Returns the username input
    */
   get usernameInput() {
@@ -120,7 +134,7 @@ export default class EditUserGroupTestPage {
    * @returns {HTMLElement}
    */
   getAutocompleteItem(index) {
-    const autocompleteItems = this._page.container.querySelectorAll('#autocomplete-item .row.selected .main-cell-wrapper .main-cell a');
+    const autocompleteItems = this._page.container.querySelectorAll('#autocomplete-item .row.selected .main-cell-wrapper .main-cell button');
     return autocompleteItems[index];
   }
 
@@ -204,6 +218,17 @@ export default class EditUserGroupTestPage {
         throw new Error("The field has not changed yet.");
       }
     });
+  }
+
+  /** fill the input element with data */
+  fillInput(element, data) {
+    const dataInputEvent = {target: {value: data}};
+    fireEvent.change(element, dataInputEvent);
+  }
+
+  /** on keypup element */
+  keyUpInput(component)  {
+    fireEvent.keyUp(component, {keyCode: 38});
   }
 
   async click(element) {

@@ -55,8 +55,8 @@ class AutocompleteItem extends Component {
       const longId = this.props.user.gpgkey.fingerprint.substr(this.props.user.gpgkey.fingerprint.length - 16);
       return longId.replace(/(.{4})/g, "$1 ");
     } else {
-      if (this.props.group.user_count > 1) {
-        return `${this.props.group.user_count} group members`;
+      if (this.props.group?.groups_users?.length > 1) {
+        return `${this.props.group.groups_users.length} group members`;
       } else {
         return `One group member`;
       }
@@ -91,18 +91,18 @@ class AutocompleteItem extends Component {
         <div className={this.getClassName()}>
           <div className="main-cell-wrapper">
             <div className="main-cell ">
-              <a role="button" onClick={this.handleClick}>
+              <button type="button" className="link no-border" onClick={this.handleClick}>
                 {this.props.user &&
                 <UserAvatar user={this.props.user} baseUrl={this.props.baseUrl}/>
                 }
                 {this.props.group &&
-                <GroupAvatar group={this.props.group} baseUrl={this.props.baseUrl}/>
+                <GroupAvatar group={this.props.group}/>
                 }
                 <div className="user">
                   <span className="name">{this.getTitle()}</span>
                   <span className="details">{this.getSubtitle()}</span>
                 </div>
-              </a>
+              </button>
             </div>
           </div>
         </div>

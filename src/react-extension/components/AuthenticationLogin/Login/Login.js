@@ -15,7 +15,7 @@ import React, {Component} from "react";
 import PropTypes from "prop-types";
 import UserAvatar from "../../Common/Avatar/UserAvatar";
 import {Trans, withTranslation} from "react-i18next";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import Password from "../../../../shared/components/Password/Password";
 
 /**
@@ -57,7 +57,8 @@ class Login extends Component {
         emptyPassphrase: false, // True if the passphrase is empty
         invalidPassphrase: false, // True if the passphrase is invalid
         invalidGpgKey: false, // True if the gpg key is invalid
-      }
+      },
+      isSsoAvailable: false, // true if the current user has an SSO kit built locally
     };
   }
 
@@ -123,6 +124,7 @@ class Login extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleChangePassphrase = this.handleChangePassphrase.bind(this);
     this.handleToggleRememberMe = this.handleToggleRememberMe.bind(this);
+    this.handleSwitchToSso = this.handleSwitchToSso.bind(this);
   }
 
   /**
@@ -152,10 +154,10 @@ class Login extends Component {
    */
   async handleSubmit(event) {
     event.preventDefault();
-    await this.validate();
+    this.validate();
 
     if (this.isValid) {
-      await this.toggleProcessing();
+      this.toggleProcessing();
       if (await this.checkPassphrase()) {
         await this.login();
       }
@@ -166,19 +168,19 @@ class Login extends Component {
    * Whenever the user changes the private key
    * @param event An input event
    */
-  async handleChangePassphrase(event) {
+  handleChangePassphrase(event) {
     const passphrase = event.target.value;
-    await this.fillPassphrase(passphrase);
+    this.fillPassphrase(passphrase);
     if (this.state.hasBeenValidated) {
-      await this.validate();
+      this.validate();
     }
   }
 
   /**
    * Whenever the user tosggles the remember me flag
    */
-  async handleToggleRememberMe() {
-    await this.toggleRememberMe();
+  handleToggleRememberMe() {
+    this.toggleRememberMe();
   }
 
   /**
@@ -190,7 +192,7 @@ class Login extends Component {
       await this.props.onCheckPassphrase(this.state.passphrase);
       return true;
     } catch (error) {
-      await this.onCheckPassphraseFailure(error);
+      this.onCheckPassphraseFailure(error);
       return false;
     }
   }
@@ -224,35 +226,43 @@ class Login extends Component {
    * Fill the passphrase
    * @param passphrase A passphrase
    */
-  async fillPassphrase(passphrase) {
-    await this.setState({passphrase});
+  fillPassphrase(passphrase) {
+    this.setState({passphrase});
   }
 
   /**
    * Toggle the remember me flag value
    */
-  async toggleRememberMe() {
-    await this.setState({rememberMe: !this.state.rememberMe});
+  toggleRememberMe() {
+    this.setState({rememberMe: !this.state.rememberMe});
   }
 
   /**
    * Validate the security token data
    */
-  async validate() {
+  validate() {
     const {passphrase} = this.state;
     const emptyPassphrase =  passphrase.trim() === '';
     if (emptyPassphrase) {
-      await this.setState({hasBeenValidated: true, errors: {emptyPassphrase}});
+      this.setState({hasBeenValidated: true, errors: {emptyPassphrase}});
       return;
     }
-    await this.setState({hasBeenValidated: true, errors: {}});
+    this.setState({hasBeenValidated: true, errors: {}});
   }
 
   /**
    * Toggle the processing mode
    */
-  async toggleProcessing() {
-    await this.setState({actions: {processing: true}});
+  toggleProcessing() {
+    this.setState({actions: {processing: !this.state.actions.processing}});
+  }
+
+  /**
+   * Switches the UI to the SSO mode.
+   */
+  handleSwitchToSso(event) {
+    event.preventDefault();
+    this.props.switchToSsoLogin();
   }
 
   /**
@@ -268,12 +278,19 @@ class Login extends Component {
   }
 
   /**
+   * Returns the provider information of the current SSO provider configured.
+   * @return {object}
+   */
+  get ssoProviderData() {
+    return this.props.ssoProvider;
+  }
+
+  /**
    * Render the component
    */
   render() {
     const processingClassName = this.isProcessing ? 'processing' : '';
     const securityToken = this.securityToken;
-
     return (
       <div className="login">
         <div className="login-user">
@@ -281,7 +298,6 @@ class Login extends Component {
           <p className="login-user-name">{this.fullname}</p>
           <p className="login-user-email">{this.username}</p>
         </div>
-
         <form acceptCharset="utf-8" onSubmit={this.handleSubmit} className="enter-passphrase">
           <div className={`input-password-wrapper input required ${this.hasErrors ? "error" : ""}`}>
             <label htmlFor="passphrase">
@@ -304,7 +320,9 @@ class Login extends Component {
               <div className="empty-passphrase error-message"><Trans>The passphrase should not be empty.</Trans></div>
               }
               {this.state.errors.invalidPassphrase &&
-              <div className="invalid-passphrase error-message"><Trans>The passphrase is invalid.</Trans></div>
+              <div className="invalid-passphrase error-message">
+                <Trans>The passphrase is invalid.</Trans> {this.props.isSsoAvailable && <button className="link" type="button" onClick={this.props.onSecondaryActionClick}><Trans>Do you need help?</Trans></button>}
+              </div>
               }
               {this.state.errors.invalidGpgKey &&
               <div className="invalid-gpg-key error-message"><Trans>The private key is invalid.</Trans></div>
@@ -326,21 +344,26 @@ class Login extends Component {
               </label>
             </div>
           }
-
           <div className="form-actions">
             <button
               type="submit"
               className={`button primary big full-width ${processingClassName}`}
-              role="button"
               disabled={this.isProcessing}>
               {{
                 [LoginVariations.SIGN_IN]: <Trans>Sign in</Trans>,
                 [LoginVariations.ACCOUNT_RECOVERY]: <Trans>Complete recovery</Trans>,
               }[this.props.displayAs]}
             </button>
-            <a onClick={this.props.onSecondaryActionClick}>
-              <Trans>Help, I lost my passphrase.</Trans>
-            </a>
+            {this.props.isSsoAvailable &&
+              <button type="button" className="link switchToSso" onClick={this.handleSwitchToSso}>
+                <Trans>Sign in with Single Sign-On.</Trans>
+              </button>
+            }
+            {!this.props.isSsoAvailable &&
+              <button type="button" className="link" onClick={this.props.onSecondaryActionClick}>
+                <Trans>Help, I lost my passphrase.</Trans>
+              </button>
+            }
           </div>
         </form>
       </div>
@@ -357,6 +380,7 @@ Login.propTypes = {
     LoginVariations.SIGN_IN,
     LoginVariations.ACCOUNT_RECOVERY,
   ]), // Defines how the form should be displayed and behaves
+  isSsoAvailable: PropTypes.bool, // true if SSO is available
   context: PropTypes.any, // The application context
   account: PropTypes.object, // The user account
   userSettings: PropTypes.object, // The user settings
@@ -364,6 +388,8 @@ Login.propTypes = {
   onSignIn: PropTypes.func.isRequired, // Callback to trigger whenever the user wants to sign-in
   onCheckPassphrase: PropTypes.func.isRequired, // Callback to trigger whenever the user wants to check the passphrase
   onSecondaryActionClick: PropTypes.func, // Callback to trigger when the user clicks on the secondary action link.
+  switchToSsoLogin: PropTypes.func, // Whenever the user want to sign-in via SSO
+  ssoProvider: PropTypes.object, // The SSO provider if any
   t: PropTypes.func, // The translation function
 };
 export default withAppContext(withTranslation('common')(Login));

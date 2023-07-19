@@ -16,7 +16,7 @@ import PropTypes from "prop-types";
 import {DateTime} from "luxon";
 import UserAvatar from "../../Common/Avatar/UserAvatar";
 import GroupAvatar from "../../Common/Avatar/GroupAvatar";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withResourceWorkspace} from "../../../contexts/ResourceWorkspaceContext";
 import Icon from "../../../../shared/components/Icons/Icon";
 import {Trans, withTranslation} from "react-i18next";
@@ -271,7 +271,7 @@ class DisplayResourceFolderDetailsActivity extends React.Component {
         <UserAvatar user={permission.user} baseUrl={this.props.context.userSettings.getTrustedDomain()}/>
         }
         {permission.group &&
-        <GroupAvatar group={permission.group} baseUrl={this.props.context.userSettings.getTrustedDomain()}/>
+        <GroupAvatar group={permission.group}/>
         }
         <div className="name">
           <span className="creator">{permissionAroName}</span>
@@ -399,7 +399,7 @@ class DisplayResourceFolderDetailsActivity extends React.Component {
       <div className={`activity accordion sidebar-section ${this.state.open ? "" : "closed"}`}>
         <div className="accordion-header">
           <h4>
-            <a onClick={this.handleTitleClickEvent} role="button">
+            <button type="button" className="link no-border" onClick={this.handleTitleClickEvent}>
               <Trans>Activity</Trans>
               {this.state.open &&
               <Icon name="caret-down"/>
@@ -407,7 +407,7 @@ class DisplayResourceFolderDetailsActivity extends React.Component {
               {!this.state.open &&
               <Icon name="caret-right"/>
               }
-            </a>
+            </button>
           </h4>
         </div>
         <div className="accordion-content">
@@ -424,9 +424,9 @@ class DisplayResourceFolderDetailsActivity extends React.Component {
             </ul>
             {isMoreButtonVisible &&
             <div className="actions">
-              <a onClick={this.handleMoreClickEvent} className={`button action-logs-load-more ${this.state.loadingMore ? "processing disabled" : ""}`} role="button">
+              <button type="button" onClick={this.handleMoreClickEvent} disabled={this.state.loadingMore} className={`link no-border action-logs-load-more ${this.state.loadingMore ? "processing" : ""}`}>
                 <span><Trans>More</Trans></span>
-              </a>
+              </button>
             </div>
             }
           </React.Fragment>

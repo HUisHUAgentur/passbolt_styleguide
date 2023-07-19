@@ -13,7 +13,7 @@
  */
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import DialogWrapper from "../../Common/Dialog/DialogWrapper/DialogWrapper";
 import NotifyError from "../../Common/Error/NotifyError/NotifyError";
 import FormSubmitButton from "../../Common/Inputs/FormSubmitButton/FormSubmitButton";
@@ -21,6 +21,9 @@ import FormCancelButton from "../../Common/Inputs/FormSubmitButton/FormCancelBut
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import {withDialog} from "../../../contexts/DialogContext";
 import {Trans, withTranslation} from "react-i18next";
+import {maxSizeValidation} from "../../../lib/Error/InputValidator";
+import Icon from "../../../../shared/components/Icons/Icon";
+import {RESOURCE_NAME_MAX_LENGTH} from '../../../../shared/constants/inputs.const';
 
 class CreateResourceFolder extends Component {
   /**
@@ -58,7 +61,8 @@ class CreateResourceFolder extends Component {
 
       // Fields and errors
       name: this.translate("loading..."),
-      nameError: false
+      nameError: false,
+      nameWarning: "",
     };
   }
 
@@ -78,6 +82,7 @@ class CreateResourceFolder extends Component {
     this.handleClose = this.handleClose.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
+    this.handleNameInputKeyUp = this.handleNameInputKeyUp.bind(this);
   }
 
   /**
@@ -246,12 +251,20 @@ class CreateResourceFolder extends Component {
     if (!name.length) {
       nameError = this.translate("A name is required.");
     }
-    if (name.length > 64) {
-      nameError = this.translate("A name can not be more than 64 char in length.");
+    if (name.length > 256) {
+      nameError = this.translate("A name can not be more than 256 char in length.");
     }
     return new Promise(resolve => {
       this.setState({nameError: nameError}, resolve);
     });
+  }
+
+  /**
+   * Handle name input keyUp event.
+   */
+  handleNameInputKeyUp() {
+    const nameWarning = maxSizeValidation(this.state.name, RESOURCE_NAME_MAX_LENGTH, this.translate);
+    this.setState({nameWarning});
   }
 
   /**
@@ -289,18 +302,26 @@ class CreateResourceFolder extends Component {
         <form className="folder-create-form" onSubmit={this.handleFormSubmit} noValidate>
           <div className="form-content">
             <div className={`input text required ${this.state.nameError ? "error" : ""} ${this.hasAllInputDisabled() ? 'disabled' : ''}`}>
-              <label htmlFor="folder-name-input"><Trans>Name</Trans></label>
+              <label htmlFor="folder-name-input"><Trans>Name</Trans>{this.state.nameWarning &&
+                  <Icon name="exclamation"/>
+              }</label>
               <input id="folder-name-input" name="name"
                 ref={this.nameRef}
                 type="text" value={this.state.name} placeholder={this.translate("Untitled folder")}
-                maxLength="64" required="required"
+                maxLength="256" required="required"
                 disabled={this.hasAllInputDisabled()}
                 onChange={this.handleInputChange}
+                onKeyUp={this.handleNameInputKeyUp}
                 autoComplete='off' autoFocus={true}
               />
               {this.state.nameError &&
               <div className="error-message">{this.state.nameError}</div>
               }
+              {this.state.nameWarning && (
+                <div className="name warning-message">
+                  <strong><Trans>Warning:</Trans></strong> {this.state.nameWarning}
+                </div>
+              )}
             </div>
           </div>
           <div className="submit-wrapper clearfix">

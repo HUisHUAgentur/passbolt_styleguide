@@ -127,6 +127,13 @@ class PasswordEditPageObject {
   }
 
   /**
+   * Returns the pwned warning message
+   */
+  get pwnedWarningMessage() {
+    return this._container.querySelector('.pwned-password.warning-message');
+  }
+
+  /**
    * Returns the name input element
    */
   get name() {
@@ -141,10 +148,24 @@ class PasswordEditPageObject {
   }
 
   /**
+   * Returns the name warning mesage input element
+   */
+  get nameWarningMessage() {
+    return this._container.querySelector('.name.warning-message');
+  }
+
+  /**
    * Returns the uri input element
    */
   get uri() {
     return this._container.querySelector('#edit-password-form-uri');
+  }
+
+  /**
+   * Returns the uri warning mesage input element
+   */
+  get uriWarningMessage() {
+    return this._container.querySelector('.uri.warning-message');
   }
 
   /**
@@ -162,11 +183,26 @@ class PasswordEditPageObject {
   }
 
   /**
+   * Returns the username warning mesage input element
+   */
+  get usernameWarningMessage() {
+    return this._container.querySelector('.username.warning-message');
+  }
+
+  /**
    * Returns the password error mesage input element
    */
   get passwordErrorMessage() {
     return this._container.querySelector('.password.error-message');
   }
+
+  /**
+   * Returns the password warning mesage input element
+   */
+  get passwordWarningMessage() {
+    return this._container.querySelector('.password.warning-message');
+  }
+
 
   /**
    * Returns the complexity text input element
@@ -190,6 +226,14 @@ class PasswordEditPageObject {
   }
 
   /**
+   * Returns the description warning mesage input element
+   */
+  get descriptionWarningMessage() {
+    return this._container.querySelector('.description.warning-message');
+  }
+
+
+  /**
    * Returns the progress bar element
    */
   get progressBar() {
@@ -200,7 +244,7 @@ class PasswordEditPageObject {
    * Returns the password view button element
    */
   get passwordViewButton() {
-    return this._container.querySelector('.password-view.button .svg-icon');
+    return this._container.querySelector('.password-view .svg-icon');
   }
 
   /**
@@ -272,6 +316,14 @@ class PasswordEditPageObject {
     fireEvent.change(element, dataInputEvent);
   }
 
+  /** fill the input password with data */
+  async fillInputPassword(data)  {
+    const dataInputEvent = {target: {value: data}};
+    fireEvent.change(this.password, dataInputEvent);
+    jest.runAllTimers();
+    await waitFor(() => {});
+  }
+
   /** focus the input element with data */
   focusInput(element)  {
     fireEvent.focus(element);
@@ -280,6 +332,12 @@ class PasswordEditPageObject {
   /** blur the input element with data */
   blurInput(element)  {
     fireEvent.blur(element);
+  }
+
+  /** on keypup element */
+  async keyUpInput(component)  {
+    fireEvent.keyUp(component, {keyCode: 38});
+    await waitFor(() => {});
   }
 
   /** Open the password generator*/

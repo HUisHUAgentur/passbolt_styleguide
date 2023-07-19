@@ -13,12 +13,13 @@
  */
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withNavigationContext} from "../../../contexts/NavigationContext";
 import {withAccountRecovery} from "../../../contexts/AccountRecoveryUserContext";
 import UserAvatar from "../../Common/Avatar/UserAvatar";
 import Icon from "../../../../shared/components/Icons/Icon";
 import {Trans, withTranslation} from "react-i18next";
+import {withMfa} from "../../../contexts/MFAContext";
 
 class DisplayUserBadgeMenu extends Component {
   /**
@@ -61,6 +62,9 @@ class DisplayUserBadgeMenu extends Component {
     document.addEventListener('click', this.handleDocumentClickEvent, {capture: true});
     document.addEventListener('contextmenu', this.handleDocumentContextualMenuEvent, {capture: true});
     document.addEventListener('dragstart', this.handleDocumentDragStartEvent, {capture: true});
+    if (this.props.context.siteSettings.canIUse('mfaPolicies')) {
+      this.props.mfaContext.checkMfaChoiceRequired();
+    }
   }
 
   componentWillUnmount() {
@@ -193,7 +197,7 @@ class DisplayUserBadgeMenu extends Component {
    * @return {bool}
    */
   get attentionRequired() {
-    return this.props.accountRecoveryContext.isAccountRecoveryChoiceRequired();
+    return this.props.accountRecoveryContext.isAccountRecoveryChoiceRequired() || this.props.mfaContext.isMfaChoiceRequired();
   }
 
   /**
@@ -211,36 +215,36 @@ class DisplayUserBadgeMenu extends Component {
               <span className="email">{this.getUserUsername()}</span>
             </div>
             <div className="more right-cell">
-              <a role="button">
+              <button type="button" className="link no-border">
                 <Icon name="caret-down"/>
-              </a>
+              </button>
             </div>
           </div>
           {this.state.open &&
           <ul className="dropdown-content right visible">
             <li key="profile">
               <div className="row">
-                <a role="button" tabIndex="1" onClick={this.handleProfileClick}>
+                <button type="button" className="link no-border" onClick={this.handleProfileClick}>
                   <span><Trans>Profile</Trans></span>{this.attentionRequired && <Icon name="exclamation" baseline={true}/>}
-                </a>
+                </button>
               </div>
             </li>
             {this.canIUseThemeCapability &&
             <li key="theme">
               <div className="row">
-                <a role="button" tabIndex="2" onClick={this.handleThemeClick}>
+                <button type="button" className="link no-border" onClick={this.handleThemeClick}>
                   <span><Trans>Theme</Trans></span>
-                </a>
+                </button>
               </div>
             </li>
             }
             {this.canIUseMobileCapability &&
             <li key="mobile">
               <div className="row">
-                <a role="button" tabIndex="3" onClick={this.handleMobileAppsClick}>
+                <button type="button" className="link no-border" onClick={this.handleMobileAppsClick}>
                   <span><Trans>Mobile Apps</Trans></span>
                   <span className="chips new">new</span>
-                </a>
+                </button>
               </div>
             </li>
             }
@@ -255,9 +259,10 @@ class DisplayUserBadgeMenu extends Component {
 DisplayUserBadgeMenu.propTypes = {
   context: PropTypes.object, // The application context
   navigationContext: PropTypes.any, // The application navigation context
+  mfaContext: PropTypes.object, // The mfa context
   accountRecoveryContext: PropTypes.object, // The account recovery context
   baseUrl: PropTypes.string,
   user: PropTypes.object,
 };
 
-export default withAppContext(withNavigationContext(withAccountRecovery(withTranslation("common")(DisplayUserBadgeMenu))));
+export default withAppContext(withNavigationContext(withAccountRecovery(withMfa(withTranslation("common")(DisplayUserBadgeMenu)))));

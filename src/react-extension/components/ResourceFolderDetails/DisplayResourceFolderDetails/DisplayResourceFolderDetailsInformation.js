@@ -14,7 +14,7 @@
 import React from "react";
 import Icon from "../../../../shared/components/Icons/Icon";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withRouter} from "react-router-dom";
 import {ResourceWorkspaceFilterTypes, withResourceWorkspace} from "../../../contexts/ResourceWorkspaceContext";
 import {Trans, withTranslation} from "react-i18next";
@@ -136,7 +136,7 @@ class DisplayResourceFolderDetailsInformation extends React.Component {
       <div className={`detailed-information accordion sidebar-section ${this.state.open ? "" : "closed"}`}>
         <div className="accordion-header">
           <h4>
-            <a onClick={this.handleTitleClickEvent} role="button">
+            <button className="link no-border" type="button" onClick={this.handleTitleClickEvent}>
               <Trans>Information</Trans>
               {this.state.open &&
               <Icon name="caret-down"/>
@@ -144,7 +144,7 @@ class DisplayResourceFolderDetailsInformation extends React.Component {
               {!this.state.open &&
               <Icon name="caret-right"/>
               }
-            </a>
+            </button>
           </h4>
         </div>
         <div className="accordion-content">
@@ -155,7 +155,7 @@ class DisplayResourceFolderDetailsInformation extends React.Component {
             </li>
             <li className="modified">
               <span className="label"><Trans>Modified</Trans></span>
-              <span className="value">{modifiedDateTimeAgo}</span>
+              <span className="value" title={this.folder.modified}>{modifiedDateTimeAgo}</span>
             </li>
             <li className="modified-by">
               <span className="label"><Trans>Modified by</Trans></span>
@@ -163,7 +163,7 @@ class DisplayResourceFolderDetailsInformation extends React.Component {
             </li>
             <li className="modified">
               <span className="label"><Trans>Created</Trans></span>
-              <span className="value">{createdDateTimeAgo}</span>
+              <span className="value" title={this.folder.created}>{createdDateTimeAgo}</span>
             </li>
             <li className="modified-by">
               <span className="label"><Trans>Created by</Trans></span>
@@ -172,9 +172,10 @@ class DisplayResourceFolderDetailsInformation extends React.Component {
             <li className="location">
               <span className="label"><Trans>Location</Trans></span>
               <span className="value">
-                <a onClick={this.handleFolderParentClickEvent} className={`folder-link ${!this.props.context.folders ? "disabled" : ""}`}>
-                  <Icon name="folder"/> {folderParentName}
-                </a>
+                <button type="button" onClick={this.handleFolderParentClickEvent} disabled={!this.props.context.folders} className="link no-border folder-link">
+                  <Icon name="folder"/>
+                  <span>{folderParentName}</span>
+                </button>
               </span>
             </li>
           </ul>

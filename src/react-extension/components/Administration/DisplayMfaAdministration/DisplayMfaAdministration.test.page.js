@@ -12,10 +12,12 @@
  * @since         2.11.0
  */
 import {fireEvent, render, waitFor} from "@testing-library/react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import React from "react";
 import DisplayMfaAdministration from "./DisplayMfaAdministration";
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
+import {AdminMfaContextProvider} from "../../../contexts/Administration/AdministrationMfa/AdministrationMfaContext";
+import DisplayAdministrationMfaActions from "../DisplayAdministrationWorkspaceActions/DisplayAdministrationMfaActions/DisplayAdministrationMfaActions";
 
 /**
  * The DisplayMfaAdministration component represented as a page
@@ -30,17 +32,10 @@ export default class DisplayMfaAdministrationPage {
     this._page = render(
       <MockTranslationProvider>
         <AppContext.Provider value={appContext}>
-          <DisplayMfaAdministration {...props}/>
-        </AppContext.Provider>
-      </MockTranslationProvider>
-    );
-  }
-
-  rerender(appContext, props) {
-    this._page.rerender(
-      <MockTranslationProvider>
-        <AppContext.Provider value={appContext}>
-          <DisplayMfaAdministration {...props}/>
+          <AdminMfaContextProvider  {...props}>
+            <DisplayAdministrationMfaActions />
+            <DisplayMfaAdministration {...props}/>
+          </AdminMfaContextProvider>
         </AppContext.Provider>
       </MockTranslationProvider>
     );
@@ -96,24 +91,25 @@ export default class DisplayMfaAdministrationPage {
   }
 
   /**
-   * Returns the duo integration key input element
+   * Returns the duo client id input element
    */
-  get duoIntegrationKey() {
-    return this._page.container.querySelector('#duoIntegrationKey');
+  get duoClientId() {
+    return this._page.container.querySelector('#duoClientId');
   }
 
   /**
-   * Returns the duo salt input element
+   * Returns the duo client secret input element
    */
-  get duoSalt() {
-    return this._page.container.querySelector('#duoSalt');
+  get duoClientSecret() {
+    return this._page.container.querySelector('#duoClientSecret');
   }
 
+
   /**
-   * Returns the duo secret key input element
+   * Returns the eye button for duoClientSecret
    */
-  get duoSecretKey() {
-    return this._page.container.querySelector('#duoSecretKey');
+  get duoClientSecretButton() {
+    return this._page.container.querySelectorAll('.password-view .svg-icon')[1];
   }
 
   /**
@@ -131,6 +127,13 @@ export default class DisplayMfaAdministrationPage {
   }
 
   /**
+   * Returns the eye button for yubikeySecretKey
+   */
+  get yubikeySecretKeyButton() {
+    return this._page.container.querySelectorAll('.password-view .svg-icon')[0];
+  }
+
+  /**
    * Returns the duo hostname error mesage input element
    */
   get duoHostnameErrorMessage() {
@@ -140,22 +143,23 @@ export default class DisplayMfaAdministrationPage {
   /**
    * Returns the duo integration key error mesage input element
    */
-  get duoIntegrationKeyErrorMessage() {
-    return this._page.container.querySelector('.duo_integration_key.error-message').textContent;
-  }
-
-  /**
-   * Returns the duo salt error mesage input element
-   */
-  get duoSaltErrorMessage() {
-    return this._page.container.querySelector('.duo_salt.error-message').textContent;
+  get duoClientIdErrorMessage() {
+    return this._page.container.querySelector('.duo_client_id.error-message').textContent;
   }
 
   /**
    * Returns the duo secret key error mesage input element
    */
-  get duoSecretKeyErrorMessage() {
-    return this._page.container.querySelector('.duo_secret_key.error-message').textContent;
+  get duoClientSecretErrorMessage() {
+    return this._page.container.querySelector('.duo_client_secret.error-message').textContent;
+  }
+
+  /**
+   * Returns the HTMLElement button of the toolbar that is the "Save Settings"
+   * @returns {HTMLElement}
+   */
+  get toolbarActionsSaveButton() {
+    return this._page.container.querySelectorAll(".actions-wrapper .actions button")[0];
   }
 
   /**
@@ -189,6 +193,22 @@ export default class DisplayMfaAdministrationPage {
     this.fillInput(this.yubikeySecretKey, data);
   }
 
+
+  /** fill the duo hostname element with data */
+  fillDuoHostname(data) {
+    this.fillInput(this.duoHostname, data);
+  }
+
+  /** fill the duo client id with data */
+  fillClientId(data) {
+    this.fillInput(this.duoClientId, data);
+  }
+
+  /** fill the duo client secret with data */
+  fillClientSecret(data) {
+    this.fillInput(this.duoClientSecret, data);
+  }
+
   /** Click on the duo element */
   async checkDuo() {
     await this.click(this.duo);
@@ -197,5 +217,35 @@ export default class DisplayMfaAdministrationPage {
   /** Click on the yubikey element */
   async checkYubikey() {
     await this.click(this.yubikey);
+  }
+  /**
+   * Toggle the obfuscate mode
+   */
+  async toggleObfuscate(component) {
+    await this.click(component);
+  }
+
+  /**
+   * Returns true if the component is in an obfuscated mode
+   */
+  isObfuscated(component) {
+    return component.getAttribute('type') === "password";
+  }
+
+  /**
+   * Returns true if the save button in the toolbar is enabled.
+   * @returns {boolean}
+   */
+  isSaveButtonEnabled() {
+    return !this.toolbarActionsSaveButton.hasAttribute("disabled");
+  }
+
+  /**
+   * Simulates a click on the "Save settings" button.
+   * To work properly, the form needs to be valid otherwise the sate doesn't change and this blocks the test.
+   * @returns {Promise<void>}
+   */
+  async saveSettings() {
+    await this.click(this.toolbarActionsSaveButton);
   }
 }

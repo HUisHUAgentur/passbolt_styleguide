@@ -441,22 +441,32 @@ const isValueInItems = (props, propName, componentName) => {
   const value = props[propName];
   // value must be in the items
   const items = props.items;
-  if (items.length > 0 && items.every(item => item.value !== value)) {
+  if (value !== null && items.length > 0 && items.every(item => item.value !== value)) {
     return new Error(
       `Invalid prop ${propName} passed to ${componentName}. Expected the value ${value} in items.`
     );
   }
 };
 
+/**
+ * enumeration for select direction
+ */
+export const DirectionEnum = {
+  top: 'top',
+  bottom: 'bottom',
+  left: 'left',
+  right: 'right'
+};
+
 Select.propTypes = {
   id: PropTypes.string, // The select field id
   name: PropTypes.string, // The select field name
   className: PropTypes.string, // The class name
-  direction: PropTypes.string,
+  direction: PropTypes.oneOf(Object.values(DirectionEnum)),
   search: PropTypes.bool, // The search field property
-  items: PropTypes.array.isRequired, // The item list of the select field
+  items: PropTypes.array, // The item list of the select field
   value: CustomPropTypes.allPropTypes(
-    PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool]).isRequired,
+    PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool]),
     isValueInItems
   ), // The item selected of the select field
   disabled: PropTypes.bool, // The current select field disabled property

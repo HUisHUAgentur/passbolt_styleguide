@@ -14,7 +14,7 @@
 
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import AppContext from "./contexts/AppContext";
+import AppContext from "../shared/context/AppContext/AppContext";
 import TranslationProvider from "./components/Common/Internationalisation/TranslationProvider";
 import SiteSettings from "../shared/lib/Settings/SiteSettings";
 import Footer from "./components/Common/Footer/Footer";
@@ -144,7 +144,7 @@ class ExtAuthenticationAccountRecovery extends Component {
     return (
       <AppContext.Provider value={this.state}>
         {this.isReady() &&
-        <TranslationProvider loadingPath="/data/locales/{{lng}}/{{ns}}.json">
+        <TranslationProvider loadingPath="/webAccessibleResources/locales/{{lng}}/{{ns}}.json">
           <AuthenticationAccountRecoveryContextProvider>
             <div id="container" className="container page login">
               <div className="content">

@@ -13,7 +13,7 @@
  */
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import DialogWrapper from "../../Common/Dialog/DialogWrapper/DialogWrapper";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import NotifyError from "../../Common/Error/NotifyError/NotifyError";
@@ -158,7 +158,7 @@ class DeleteResource extends Component {
             <>
               <p>
                 <Trans>
-                  Are you sure you want to delete the password <strong>{{resourceName: this.resources[0].name}}</strong>?
+                  Are you sure you want to delete the password <strong className="dialog-variable">{{resourceName: this.resources[0].name}}</strong>?
                 </Trans>
               </p>
               <p><Trans>Once the password is deleted, it’ll be removed permanently and will not be recoverable.</Trans></p>

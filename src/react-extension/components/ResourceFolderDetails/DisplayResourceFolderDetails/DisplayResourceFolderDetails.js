@@ -17,10 +17,11 @@ import PropTypes from "prop-types";
 import DisplayResourceFolderDetailsInformation from "./DisplayResourceFolderDetailsInformation";
 import DisplayResourceFolderDetailsPermissions from "./DisplayResourceFolderDetailsPermissions";
 import DisplayResourceFolderDetailsActivity from "./DisplayResourceFolderDetailsActivity";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withResourceWorkspace} from "../../../contexts/ResourceWorkspaceContext";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import {Trans, withTranslation} from "react-i18next";
+import ClipBoard from '../../../../shared/lib/Browser/clipBoard';
 
 class DisplayResourceFolderDetails extends React.Component {
   /**
@@ -53,7 +54,7 @@ class DisplayResourceFolderDetails extends React.Component {
   async handlePermalinkClick() {
     const baseUrl = this.props.context.userSettings.getTrustedDomain();
     const permalink = `${baseUrl}/app/folders/view/${this.props.resourceWorkspaceContext.details.folder.id}`;
-    await this.props.context.port.request("passbolt.clipboard.copy", permalink);
+    await ClipBoard.copy(permalink, this.props.context.port);
     this.props.actionFeedbackContext.displaySuccess(this.translate("The permalink has been copied to clipboard"));
   }
 
@@ -80,17 +81,17 @@ class DisplayResourceFolderDetails extends React.Component {
             <h3>
               <div className="title-wrapper">
                 <span className="name">{this.props.resourceWorkspaceContext.details.folder.name}</span>
-                <a className="title-link" title={this.translate("Copy the link to this folder")} onClick={this.handlePermalinkClick}>
+                <button type="button" className="title-link link no-border" title={this.translate("Copy the link to this folder")} onClick={this.handlePermalinkClick}>
                   <Icon name="link"/>
                   <span className="visuallyhidden"><Trans>Copy the link to this folder</Trans></span>
-                </a>
+                </button>
               </div>
               <span className="subtitle"><Trans>folder</Trans></span>
             </h3>
-            <a className="dialog-close" onClick={this.handleCloseClick}>
+            <button type="button" className="link no-border dialog-close" onClick={this.handleCloseClick}>
               <Icon name="close"/>
               <span className="visuallyhidden"><Trans>Close</Trans></span>
-            </a>
+            </button>
           </div>
           <DisplayResourceFolderDetailsInformation/>
           <DisplayResourceFolderDetailsPermissions/>

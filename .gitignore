@@ -1,9 +1,15 @@
 .idea
 .DS_Store
+.vscode
+*.vim
 node_modules
 npm-debug.log
 bower_components
 src/css
+.vscode
+
+## Build directory
+build/*
 
 # custom theme
 src/less/abstractions/colors_custom.less
@@ -14,3 +20,10 @@ src/less/abstractions/colors_custom.less
 # CI                 #
 ######################
 junit.xml
+.gitlab-ci-local
+
+### storybook
+storybook-static/*
+
+### dev scripts
+/scripts

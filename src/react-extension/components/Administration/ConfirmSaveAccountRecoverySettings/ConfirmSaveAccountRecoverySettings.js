@@ -16,7 +16,7 @@ import PropTypes from "prop-types";
 import {Trans, withTranslation} from "react-i18next";
 import DialogWrapper from "../../Common/Dialog/DialogWrapper/DialogWrapper";
 import FormSubmitButton from "../../Common/Inputs/FormSubmitButton/FormSubmitButton";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {DateTime} from "luxon";
 import FormCancelButton from "../../Common/Inputs/FormSubmitButton/FormCancelButton";
 
@@ -223,7 +223,7 @@ class ConfirmSaveAccountRecoverySettings extends Component {
             }
           </div>
           <div className="warning message">
-            <Trans>Warning, Please review carefully this configuration as it will not be trivial to change this later.</Trans>
+            <Trans>Please review carefully this configuration as it will not be trivial to change this later.</Trans>
           </div>
           <div className="submit-wrapper clearfix">
             <a

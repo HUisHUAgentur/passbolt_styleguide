@@ -15,9 +15,10 @@ module.exports = {
     }
   ],
   "core": {
-    "builder": "webpack5"
+    "builder": "webpack5",
+    "disableTelemetry": true,
   },
-  "staticDirs": ['../src'],
+  "staticDirs": ['../src', {from: '../src', to: '/webAccessibleResources' }],
   "env": (config) => ({
     ...config,
     ORIGIN_URL: 'https://passbolt.github.io/passbolt_styleguide',

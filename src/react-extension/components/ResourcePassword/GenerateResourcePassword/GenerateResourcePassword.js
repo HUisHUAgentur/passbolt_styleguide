@@ -21,13 +21,14 @@ import DialogWrapper from "../../Common/Dialog/DialogWrapper/DialogWrapper";
 import Tabs from "../../Common/Tab/Tabs";
 import Tab from "../../Common/Tab/Tab";
 import ConfigurePassphraseGenerator from "./ConfigurePassphraseGenerator";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import ConfigurePasswordGenerator from "./ConfigurePasswordGenerator";
 import {SecretGenerator} from "../../../../shared/lib/SecretGenerator/SecretGenerator";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import {withResourcePasswordGeneratorContext} from "../../../contexts/ResourcePasswordGeneratorContext";
 import Password from "../../../../shared/components/Password/Password";
 import PasswordComplexity from "../../../../shared/components/PasswordComplexity/PasswordComplexity";
+import ClipBoard from '../../../../shared/lib/Browser/clipBoard';
 
 /**
  * This component generate password or passphrase following configuration
@@ -142,7 +143,7 @@ class GenerateResourcePassword extends Component {
    * Whenever one wants to copy the password
    */
   async handleCopyPassword() {
-    await this.props.context.port.request("passbolt.clipboard.copy", this.state.password);
+    await ClipBoard.copy(this.state.password, this.props.context.port);
     this.props.actionFeedbackContext.displaySuccess(this.translate("The password has been copied to clipboard"));
   }
 
@@ -195,16 +196,16 @@ class GenerateResourcePassword extends Component {
                     value={this.state.password}
                     onChange={this.handleInputChange}
                     disabled={this.state.processing}/>
-                  <a onClick={this.handleGeneratePassword}
-                    className={`password-generate button-icon button ${this.state.processing ? 'disabled' : ''}`}>
+                  <button type="button" onClick={this.handleGeneratePassword}
+                    className={`password-generate button-icon ${this.state.processing ? 'disabled' : ''}`}>
                     <Icon name='dice' big={true}/>
                     <span className="visually-hidden"><Trans>Generate</Trans></span>
-                  </a>
-                  <a onClick={this.handleCopyPassword}
-                    className={`copy-to-clipboard button button-icon ${this.state.processing ? 'disabled' : ''}`}>
+                  </button>
+                  <button type="button" onClick={this.handleCopyPassword}
+                    className={`copy-to-clipboard button-icon ${this.state.processing ? 'disabled' : ''}`}>
                     <Icon name='copy-to-clipboard' big={true}/>
                     <span className="visually-hidden"><Trans>View</Trans></span>
-                  </a>
+                  </button>
                 </div>
                 <PasswordComplexity entropy={passwordEntropy}/>
               </div>

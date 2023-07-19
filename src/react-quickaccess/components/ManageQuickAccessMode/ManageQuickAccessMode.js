@@ -14,7 +14,7 @@
 import React, {Component} from "react";
 import {withRouter} from "react-router-dom";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../contexts/AppContext";
+import {withAppContext} from "../../../shared/context/AppContext/AppContext";
 
 class ManageQuickAccessMode extends Component {
   /**
@@ -41,7 +41,11 @@ class ManageQuickAccessMode extends Component {
     const mustCloseWindow = this.queryParameters.get("uiMode") === "detached"
       && this.queryParameters.get("feature") !== null;
     if (mustCloseWindow) {
-      const closeWindow = () => window.close();
+      const closeWindow = () => {
+        if (this.props.context.shouldCloseAtWindowBlur) {
+          window.close();
+        }
+      };
       window.addEventListener("blur", closeWindow);
     }
   }
@@ -53,10 +57,10 @@ class ManageQuickAccessMode extends Component {
     switch (this.queryParameters.get("feature")) {
       case "create-new-credentials":
       case "save-credentials":
-        this.props.history.push({pathname: "/data/quickaccess/resources/create"});
+        this.props.history.push({pathname: "/webAccessibleResources/quickaccess/resources/create"});
         break;
       case "autosave-credentials":
-        this.props.history.push({pathname: "/data/quickaccess/resources/autosave"});
+        this.props.history.push({pathname: "/webAccessibleResources/quickaccess/resources/autosave"});
         break;
       default:
         break;

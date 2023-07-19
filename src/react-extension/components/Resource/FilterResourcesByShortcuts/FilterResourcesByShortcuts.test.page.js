@@ -13,7 +13,7 @@
  * @since         2.11.0
  */
 import {fireEvent, render, waitFor} from "@testing-library/react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import React from "react";
 import FilterResourcesByShortcuts from "./FilterResourcesByShortcuts";
 import {BrowserRouter as Router} from 'react-router-dom';
@@ -51,14 +51,14 @@ export default class FilterResourcesByShortcutsPage {
    * Returns the item selected element
    */
   get itemSelected() {
-    return this._page.container.querySelector('.row.selected .main-cell-wrapper .main-cell a span').textContent;
+    return this._page.container.querySelector('.row.selected .main-cell-wrapper .main-cell button span').textContent;
   }
 
   /**
    * Returns the item element
    */
   async selectItem(index) {
-    const element = this._page.container.querySelectorAll('.row .main-cell-wrapper .main-cell a')[index - 1];
+    const element = this._page.container.querySelectorAll('.row .main-cell-wrapper .main-cell button')[index - 1];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});

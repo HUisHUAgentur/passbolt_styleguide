@@ -12,7 +12,7 @@
  * @since         3.0.0
  */
 import React, {Component} from "react";
-import AppContext from "./contexts/AppContext";
+import AppContext from "../shared/context/AppContext/AppContext";
 import ApiSetupContextProvider from "./contexts/ApiSetupContext";
 import {ApiClientOptions} from "../shared/lib/apiClient/apiClientOptions";
 import OrchestrateApiSetup from "./components/AuthenticationSetup/OrchestrateApiSetup/OrchestrateApiSetup";
@@ -70,15 +70,15 @@ class ApiSetup extends Component {
    */
   initializeProperties() {
     const uuidRegex = "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[0-5][a-fA-F0-9]{3}-[089aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}";
-    const setupBootstrapRegex = `setup\/install\/(${uuidRegex})\/(${uuidRegex})$`;
+    const setupBootstrapRegex = `setup\/(install|start)\/(${uuidRegex})\/(${uuidRegex})$`;
     const regex = new RegExp(setupBootstrapRegex);
     const match = window.location.pathname.match(regex);
     if (!match) {
       console.error("Unable to retrieve the user id and token from the url");
       return;
     }
-    this.userId = match[1];
-    this.token = match[2];
+    this.userId = match[2];
+    this.token = match[3];
   }
 
   /**

@@ -12,10 +12,11 @@
  * @since         2.11.0
  */
 import {fireEvent, render, waitFor} from "@testing-library/react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import React from "react";
 import DisplaySynchronizeUserDirectoryAdministration from "./DisplaySynchronizeUserDirectoryAdministration";
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
+import {AdminUserDirectoryContextProvider} from "../../../contexts/Administration/AdministrationUserDirectory/AdministrationUserDirectoryContext";
 
 /**
  * The DisplaySynchronizeUserDirectoryAdministration component represented as a page
@@ -30,7 +31,9 @@ export default class DisplaySynchronizeUserDirectoryAdministrationPage {
     this._page = render(
       <MockTranslationProvider>
         <AppContext.Provider value={appContext}>
-          <DisplaySynchronizeUserDirectoryAdministration {...props}/>
+          <AdminUserDirectoryContextProvider {...props}>
+            <DisplaySynchronizeUserDirectoryAdministration {...props}/>
+          </AdminUserDirectoryContextProvider>
         </AppContext.Provider>
       </MockTranslationProvider>
     );
@@ -142,7 +145,7 @@ class DisplaySynchronizeUserDirectoryAdministrationDialogPageObject {
    * Returns the synchronize button element
    */
   get synchronize() {
-    return this._container.querySelector('.submit-wrapper .button.primary');
+    return this._container.querySelector('.submit-wrapper button.primary');
   }
 
   /**

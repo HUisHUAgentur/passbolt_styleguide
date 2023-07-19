@@ -12,7 +12,7 @@
  * @since         2.11.0
  */
 import {fireEvent, render, waitFor} from "@testing-library/react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import React from "react";
 import ManageDialogs from "../../Common/Dialog/ManageDialogs/ManageDialogs";
 import DialogContextProvider from "../../../contexts/DialogContext";
@@ -148,7 +148,7 @@ class CreateGroupPageObject {
    * @returns {Element}
    */
   get userAutocomplete() {
-    return this._container.querySelector('#autocomplete-item .row.selected .main-cell-wrapper .main-cell a');
+    return this._container.querySelector('#autocomplete-item .row.selected .main-cell-wrapper .main-cell button');
   }
 
   /**
@@ -207,11 +207,11 @@ class CreateGroupPageObject {
   }
 
   /**
-   * Returns the close button disabled to remove user for the 'index' one
+   * Returns true if the close button is disabled to remove user for the 'index' one
    * @param index the display close button disabled to remove user
    */
-  removeUserDisabled(index) {
-    return this._container.querySelectorAll('.permissions.groups_users .row')[index - 1].querySelector('.remove-item.disabled');
+  hasRemoveUserDisabled(index) {
+    return this.removeUser(index).hasAttribute("disabled");
   }
 
   /**
@@ -250,6 +250,13 @@ class CreateGroupPageObject {
   }
 
   /**
+   * Returns the name warning mesage input element
+   */
+  get nameWarningMessage() {
+    return this._container.querySelector('.name.warning-message');
+  }
+
+  /**
    * Returns true if the page object exists in the container
    */
   exists() {
@@ -280,6 +287,11 @@ class CreateGroupPageObject {
   fillInput(element, data) {
     const dataInputEvent = {target: {value: data}};
     fireEvent.change(element, dataInputEvent);
+  }
+
+  /** on keypup element */
+  keyUpInput(component)  {
+    fireEvent.keyUp(component, {keyCode: 38});
   }
 
   /** select item */

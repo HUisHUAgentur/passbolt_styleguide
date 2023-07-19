@@ -13,7 +13,7 @@
  */
 import React, {Fragment} from "react";
 import Icon from "../../../../shared/components/Icons/Icon";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {ResourceWorkspaceFilterTypes, withResourceWorkspace} from "../../../contexts/ResourceWorkspaceContext";
 import PropTypes from "prop-types";
 import {withRouter} from "react-router-dom";
@@ -119,7 +119,7 @@ class FilterResourcesByGroups extends React.Component {
                   <div className="main-cell">
                     <h3>
                       <span className="folders-label">
-                        <a role="button">
+                        <button type="button" className="link no-border">
                           <>
                             {this.state.open &&
                               <Icon name="caret-down"/>
@@ -129,7 +129,7 @@ class FilterResourcesByGroups extends React.Component {
                             }
                           </>
                           <Trans>Groups</Trans>
-                        </a>
+                        </button>
                       </span>
                     </h3>
                   </div>
@@ -145,10 +145,10 @@ class FilterResourcesByGroups extends React.Component {
                   <div className={`row ${this.isSelected(group.id) ? "selected" : ""}`} onClick={() => this.handleClickGroupEvent(group)}>
                     <div className="main-cell-wrapper">
                       <div className="main-cell">
-                        <a title={group.name}>
+                        <button type="button" className="link no-border" title={group.name}>
                           <Icon name="users"/>
                           <span className="ellipsis">{group.name}</span>
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>

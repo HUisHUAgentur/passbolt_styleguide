@@ -17,8 +17,8 @@ import DialogWrapper from "../../Common/Dialog/DialogWrapper/DialogWrapper";
 import Icon from "../../../../shared/components/Icons/Icon";
 import DisplayLoadingDialog from "../DisplayLoadingDialog/DisplayLoadingDialog";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
-import {withAdministrationWorkspace} from "../../../contexts/AdministrationWorkspaceContext";
 import {Trans, withTranslation} from "react-i18next";
+import {withAdminUserDirectory} from "../../../contexts/Administration/AdministrationUserDirectory/AdministrationUserDirectoryContext";
 
 class DisplaySynchronizeUserDirectoryAdministration extends Component {
   /**
@@ -62,9 +62,8 @@ class DisplaySynchronizeUserDirectoryAdministration extends Component {
    */
   async componentDidMount() {
     try {
-      const result = await this.props.administrationWorkspaceContext.onGetSynchronizeUsersDirectoryRequested();
-      const userDirectorySynchronizeResult = result.body;
-      this.setState({loading: false, userDirectorySynchronizeResult});
+      const result = await this.props.adminUserDirectoryContext.synchronizeUsers();
+      this.setState({loading: false, userDirectorySynchronizeResult: result});
     } catch (error) {
       await this.handleError(error);
     }
@@ -323,11 +322,11 @@ class DisplaySynchronizeUserDirectoryAdministration extends Component {
             }
             <div className={`accordion operation-details ${this.state.openFullReport ? "" : "closed"}`}>
               <div className="accordion-header" onClick={this.handleFullReportClicked}>
-                <a role="link">
+                <button type="button" className="link no-border">
                   <Trans>Full report</Trans>
                   {this.state.openFullReport && <Icon name="caret-down"/>}
                   {!this.state.openFullReport && <Icon name="caret-right"/>}
-                </a>
+                </button>
               </div>
               <div className="accordion-content">
                 <div className="input text">
@@ -338,7 +337,7 @@ class DisplaySynchronizeUserDirectoryAdministration extends Component {
             <p></p>
           </div>
           <div className="submit-wrapper clearfix">
-            <a className={`button primary ${this.isLoading() ? "disabled" : ""}`} role="button" onClick={this.handleClose}><Trans>Ok</Trans></a>
+            <button disabled={this.isLoading()} className="primary" type="button" onClick={this.handleClose}><Trans>Ok</Trans></button>
           </div>
         </DialogWrapper>
         }
@@ -350,8 +349,8 @@ class DisplaySynchronizeUserDirectoryAdministration extends Component {
 DisplaySynchronizeUserDirectoryAdministration.propTypes = {
   onClose: PropTypes.func,
   actionFeedbackContext: PropTypes.any, // The action feedback context
-  administrationWorkspaceContext: PropTypes.object, // The administration workspace context
+  adminUserDirectoryContext: PropTypes.object, // The administration user directory context
   t: PropTypes.func, // The translation function
 };
 
-export default withActionFeedback(withAdministrationWorkspace(withTranslation('common')(DisplaySynchronizeUserDirectoryAdministration)));
+export default withActionFeedback(withAdminUserDirectory(withTranslation('common')(DisplaySynchronizeUserDirectoryAdministration)));

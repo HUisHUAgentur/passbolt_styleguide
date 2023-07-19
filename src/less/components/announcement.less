@@ -15,16 +15,13 @@
     max-width: inherit;
   }
 
-  a {
+  button {
     border-bottom: 1px solid @link-border;
     display: inline-block;
     padding-bottom: 0;
     line-height: 1.6rem;
     margin-left: .8rem;
 
-    &:link, &:visited {
-      color: @announcement-text-color;
-    }
     &:hover {
       text-decoration: none;
       cursor: pointer;
@@ -32,13 +29,13 @@
       border-bottom: 1px solid @link-hover-border;
     }
     &:active, &:focus {
-      outline: 0;
+      outline: @outline-default-border;
       color: @text-focus-color;
       border: 0;
     }
   }
 
-  a.announcement-close {
+  button.announcement-close {
     --icon-color: @announcement-text-color;
     float: right;
     border: 0;

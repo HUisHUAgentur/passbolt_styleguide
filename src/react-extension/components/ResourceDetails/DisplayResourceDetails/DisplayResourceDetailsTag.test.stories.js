@@ -1,6 +1,6 @@
 import React from "react";
 import {MemoryRouter, Route} from "react-router-dom";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import UserSettings from "../../../../shared/lib/Settings/UserSettings";
 import userSettingsFixture from "../../../test/fixture/Settings/userSettings";
 import DisplayResourceDetailsTag from "./DisplayResourceDetailsTag";
@@ -29,7 +29,7 @@ const context = {
 };
 
 const Template = args =>
-  <TranslationProvider loadingPath="/data/locales/{{lng}}/{{ns}}.json">
+  <TranslationProvider loadingPath="/webAccessibleResources/locales/{{lng}}/{{ns}}.json">
     <AppContext.Provider value={context}>
       <MemoryRouter initialEntries={['/']}>
         <div className="panel aside">

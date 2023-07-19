@@ -14,7 +14,7 @@
 import React from "react";
 import Icon from "../../../../shared/components/Icons/Icon";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {
   resourceLinkAuthorizedProtocols,
   ResourceWorkspaceFilterTypes,
@@ -25,6 +25,10 @@ import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import sanitizeUrl, {urlProtocols} from "../../../lib/Sanitize/sanitizeUrl";
 import {Trans, withTranslation} from "react-i18next";
 import {DateTime} from "luxon";
+import ClipBoard from '../../../../shared/lib/Browser/clipBoard';
+import {withRbac} from "../../../../shared/context/Rbac/RbacContext";
+import {uiActions} from "../../../../shared/services/rbacs/uiActionEnumeration";
+import HiddenPassword from "../../../../shared/components/Password/HiddenPassword";
 
 class DisplayResourceDetailsInformation extends React.Component {
   /**
@@ -125,7 +129,7 @@ class DisplayResourceDetailsInformation extends React.Component {
    * Handle when the user select the username of the resource
    */
   async handleUsernameClickEvent() {
-    await this.props.context.port.request("passbolt.clipboard.copy", this.resource.username);
+    await ClipBoard.copy(this.resource.username, this.props.context.port);
     this.displaySuccessNotification(this.translate("The username has been copied to clipboard"));
   }
 
@@ -211,7 +215,7 @@ class DisplayResourceDetailsInformation extends React.Component {
         return;
       }
     }
-    await this.props.context.port.request("passbolt.clipboard.copy", password);
+    await ClipBoard.copy(password, this.props.context.port);
     await this.props.resourceWorkspaceContext.onResourceCopied();
     await this.props.actionFeedbackContext.displaySuccess(this.translate("The secret has been copied to clipboard"));
   }
@@ -295,14 +299,6 @@ class DisplayResourceDetailsInformation extends React.Component {
   }
 
   /**
-   * Returns true if the logged in user can use the preview password capability.
-   * @returns {boolean}
-   */
-  get canUsePreviewPassword() {
-    return this.props.context.siteSettings.canIUse('previewPassword');
-  }
-
-  /**
    * Whenever the user wants to follow a resource uri.
    */
   handleGoToResourceUriClick() {
@@ -330,7 +326,11 @@ class DisplayResourceDetailsInformation extends React.Component {
    * @returns {JSX}
    */
   render() {
-    const canUseFolders = this.props.context.siteSettings.canIUse("folders");
+    const canUseFolders = this.props.context.siteSettings.canIUse("folders")
+      && this.props.rbacContext.canIUseUiAction(uiActions.FOLDERS_USE);
+    const canPreviewSecret = this.props.context.siteSettings.canIUse("previewPassword")
+      && this.props.rbacContext.canIUseUiAction(uiActions.SECRETS_PREVIEW);
+    const canCopySecret = this.props.rbacContext.canIUseUiAction(uiActions.SECRETS_COPY);
     const creatorUsername = this.getUserUsername(this.resource.created_by);
     const modifierUsername = this.getUserUsername(this.resource.modified_by);
     const createdDateTimeAgo = this.formatDateTimeAgo(this.resource.created);
@@ -341,7 +341,7 @@ class DisplayResourceDetailsInformation extends React.Component {
       <div className={`detailed-information accordion sidebar-section ${this.state.open ? "" : "closed"}`}>
         <div className="accordion-header">
           <h4>
-            <a onClick={this.handleTitleClickEvent} role="button">
+            <button className="link no-border" type="button" onClick={this.handleTitleClickEvent}>
               <Trans>Information</Trans>
               {this.state.open &&
               <Icon name="caret-down"/>
@@ -349,45 +349,43 @@ class DisplayResourceDetailsInformation extends React.Component {
               {!this.state.open &&
               <Icon name="caret-right"/>
               }
-            </a>
+            </button>
           </h4>
         </div>
         <ul className="accordion-content">
           <li className="username">
             <span className="label"><Trans>Username</Trans></span>
-            <span className="value"><a onClick={this.handleUsernameClickEvent}>{this.resource.username}</a></span>
+            <span className="value"><button type="button" className="link no-border" onClick={this.handleUsernameClickEvent}><span>{this.resource.username}</span></button></span>
           </li>
           <li className="password">
             <span className="label"><Trans>Password</Trans></span>
             <div className="value">
               <div className={`secret ${isPasswordPreviewed ? "" : "secret-copy"}`}
                 title={isPasswordPreviewed ? this.state.previewedPassword : "secret"}>
-                <a onClick={this.handlePasswordClickEvent}>
-                  <span>
-                    {isPasswordPreviewed && this.state.previewedPassword}
-                    {!isPasswordPreviewed && <Trans>Copy password to clipboard</Trans>}
-                  </span>
-                </a>
+                <HiddenPassword
+                  canClick={canCopySecret}
+                  preview={this.state.previewedPassword}
+                  onClick={this.handlePasswordClickEvent} />
               </div>
-              {this.canUsePreviewPassword &&
-              <a onClick={this.handleViewPasswordButtonClick}
-                className="password-view button button-transparent">
-                <Icon name={isPasswordPreviewed ? 'eye-close' : 'eye-open'}/>
-                <span className="visually-hidden"><Trans>View</Trans></span>
-              </a>
+              {canPreviewSecret &&
+                <button type="button" onClick={this.handleViewPasswordButtonClick}
+                  className="password-view button-transparent">
+                  <Icon name={isPasswordPreviewed ? 'eye-close' : 'eye-open'}/>
+                  <span className="visually-hidden"><Trans>View</Trans></span>
+                </button>
               }
             </div>
           </li>
           <li className="uri">
             <span className="label"><Trans>URI</Trans></span>
             <span className="value">
-              {this.safeUri && <a onClick={this.handleGoToResourceUriClick}>{this.resource.uri}</a>}
+              {this.safeUri && <button type="button" className="link no-border" onClick={this.handleGoToResourceUriClick}><span>{this.resource.uri}</span></button>}
               {!this.safeUri && <span>{this.resource.uri}</span>}
             </span>
           </li>
           <li className="modified">
             <span className="label"><Trans>Modified</Trans></span>
-            <span className="value">{modifiedDateTimeAgo}</span>
+            <span className="value" title={this.resource.modified}>{modifiedDateTimeAgo}</span>
           </li>
           <li className="modified-by">
             <span className="label"><Trans>Modified by</Trans></span>
@@ -395,7 +393,7 @@ class DisplayResourceDetailsInformation extends React.Component {
           </li>
           <li className="modified">
             <span className="label"><Trans>Created</Trans></span>
-            <span className="value">{createdDateTimeAgo}</span>
+            <span className="value" title={this.resource.created}>{createdDateTimeAgo}</span>
           </li>
           <li className="modified-by">
             <span className="label"><Trans>Created by</Trans></span>
@@ -405,9 +403,10 @@ class DisplayResourceDetailsInformation extends React.Component {
           <li className="location">
             <span className="label"><Trans>Location</Trans></span>
             <span className="value">
-              <a onClick={this.handleFolderParentClickEvent} className={`folder-link ${!this.props.context.folders ? "disabled" : ""}`}>
-                <Icon name="folder"/> {this.getFolderName(this.resource.folder_parent_id)}
-              </a>
+              <button type="button" onClick={this.handleFolderParentClickEvent} disabled={!this.props.context.folders} className="link no-border folder-link">
+                <Icon name="folder"/>
+                <span>{this.getFolderName(this.resource.folder_parent_id)}</span>
+              </button>
             </span>
           </li>
           }
@@ -419,6 +418,7 @@ class DisplayResourceDetailsInformation extends React.Component {
 
 DisplayResourceDetailsInformation.propTypes = {
   context: PropTypes.any, // The application context
+  rbacContext: PropTypes.any, // The role based access control context
   onSelectFolderParent: PropTypes.func,
   onSelectRoot: PropTypes.func,
   history: PropTypes.object,
@@ -427,4 +427,4 @@ DisplayResourceDetailsInformation.propTypes = {
   t: PropTypes.func, // The translation function
 };
 
-export default withAppContext(withRouter(withActionFeedback(withResourceWorkspace(withTranslation('common')(DisplayResourceDetailsInformation)))));
+export default withAppContext(withRbac(withRouter(withActionFeedback(withResourceWorkspace(withTranslation('common')(DisplayResourceDetailsInformation))))));

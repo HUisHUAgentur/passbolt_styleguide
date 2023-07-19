@@ -13,7 +13,7 @@
  */
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import DialogWrapper from "../../Common/Dialog/DialogWrapper/DialogWrapper";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import NotifyError from "../../Common/Error/NotifyError/NotifyError";
@@ -369,7 +369,7 @@ class DeleteUserGroupWithConflicts extends Component {
           <div className="form-content intro">
             <p>
               <Trans>
-                You are about to delete the group <strong>{{groupName: this.groupToDelete.name}}</strong>.
+                You are about to delete the group <strong className="dialog-variable">{{groupName: this.groupToDelete.name}}</strong>.
               </Trans>
             </p>
             <p><Trans>This group is the sole owner of some content. You need to transfer the ownership to others to continue.</Trans></p>

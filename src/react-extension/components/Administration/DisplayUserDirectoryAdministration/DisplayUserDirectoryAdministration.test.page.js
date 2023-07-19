@@ -12,10 +12,12 @@
  * @since         2.11.0
  */
 import {fireEvent, render, waitFor} from "@testing-library/react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import React from "react";
 import DisplayUserDirectoryAdministration from "./DisplayUserDirectoryAdministration";
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
+import DisplayAdministrationUserDirectoryActions from "../DisplayAdministrationWorkspaceActions/DisplayAdministrationUserDirectoryActions/DisplayAdministrationUserDirectoryActions";
+import {AdminUserDirectoryContextProvider} from "../../../contexts/Administration/AdministrationUserDirectory/AdministrationUserDirectoryContext";
 
 /**
  * The DisplayUserDirectoryAdministration component represented as a page
@@ -30,17 +32,10 @@ export default class DisplayUserDirectoryAdministrationPage {
     this._page = render(
       <MockTranslationProvider>
         <AppContext.Provider value={appContext}>
-          <DisplayUserDirectoryAdministration {...props}/>
-        </AppContext.Provider>
-      </MockTranslationProvider>
-    );
-  }
-
-  rerender(appContext, props) {
-    this._page.rerender(
-      <MockTranslationProvider>
-        <AppContext.Provider value={appContext}>
-          <DisplayUserDirectoryAdministration {...props}/>
+          <AdminUserDirectoryContextProvider {...props}>
+            <DisplayAdministrationUserDirectoryActions />
+            <DisplayUserDirectoryAdministration {...props}/>
+          </AdminUserDirectoryContextProvider>
         </AppContext.Provider>
       </MockTranslationProvider>
     );
@@ -57,21 +52,54 @@ export default class DisplayUserDirectoryAdministrationPage {
    * Returns the credential title element
    */
   get credentialTitle() {
-    return this._page.container.querySelector('.accordion.section-general .accordion-header a');
+    return this._page.container.querySelector('.accordion.section-general .accordion-header button');
   }
 
   /**
    * Returns the directory configuration title element
    */
   get directoryConfigurationTitle() {
-    return this._page.container.querySelector('.accordion.section-directory-configuration .accordion-header a');
+    return this._page.container.querySelector('.accordion.section-directory-configuration .accordion-header button');
+  }
+
+  /**
+   * Returns the HTMLElement button of the toolbar that is the "Save Settings"
+   * @returns {HTMLElement}
+   */
+  get toolbarActionsSaveButton() {
+    return this._page.container.querySelectorAll(".actions-wrapper .actions button")[0];
+  }
+
+  /**
+   * Returns the HTMLElement button of the toolbar that is the "Test Settings"
+   * @returns {HTMLElement}
+   */
+  get toolbarActionsTestButton() {
+    return this._page.container.querySelectorAll(".actions-wrapper .actions button")[1];
+  }
+
+  /**
+   * Returns the HTMLElement button of the toolbar that is the "Simulate Settings"
+   * @returns {HTMLElement}
+   */
+  get toolbarActionsSimulateButton() {
+    return this._page.container.querySelectorAll(".actions-wrapper .actions button")[2];
+  }
+
+
+  /**
+   * Returns the HTMLElement button of the toolbar that is the "Synchronize Settings"
+   * @returns {HTMLElement}
+   */
+  get toolbarActionsSynchronizeButton() {
+    return this._page.container.querySelectorAll(".actions-wrapper .actions button")[3];
   }
 
   /**
    * Returns the synchronization options title element
    */
   get synchronizationOptionsTitle() {
-    return this._page.container.querySelector('.accordion.section-sync-options .accordion-header a');
+    return this._page.container.querySelector('.accordion.section-sync-options .accordion-header button');
   }
 
   /**
@@ -166,6 +194,20 @@ export default class DisplayUserDirectoryAdministrationPage {
   }
 
   /**
+   * Returns the group custom filters input element
+   */
+  get groupCustomFilters() {
+    return this._page.container.querySelector('#group-custom-filters-input');
+  }
+
+  /**
+   * Returns the user custom filters input element
+   */
+  get userCustomFilters() {
+    return this._page.container.querySelector('#user-custom-filters-input');
+  }
+
+  /**
    * Returns the group object class input element
    */
   get groupObjectClass() {
@@ -250,6 +292,13 @@ export default class DisplayUserDirectoryAdministrationPage {
   }
 
   /**
+   * Returns the update groups input element
+   */
+  get updateUsers() {
+    return this._page.container.querySelector('#sync-users-update-toggle-button');
+  }
+
+  /**
    * Returns the create groups input element
    */
   get createGroups() {
@@ -297,6 +346,75 @@ export default class DisplayUserDirectoryAdministrationPage {
   exists() {
     return this.userDirectorySettings !== null;
   }
+
+  /**
+   * Returns true if the save button in the toolbar is enabled.
+   * @returns {boolean}
+   */
+  isSaveButtonEnabled() {
+    return !this.toolbarActionsSaveButton.hasAttribute("disabled");
+  }
+
+  /**
+   * Returns true if the test button in the toolbar is enabled.
+   * @returns {boolean}
+   */
+  isTestButtonEnabled() {
+    return !this.toolbarActionsTestButton.hasAttribute("disabled");
+  }
+
+  /**
+   * Returns true if the synchronize button in the toolbar is enabled.
+   * @returns {boolean}
+   */
+  isSynchronizeButtonEnabled() {
+    return !this.toolbarActionsSynchronizeButton.hasAttribute("disabled");
+  }
+
+  /**
+   * Returns true if the simulate button in the toolbar is enabled.
+   * @returns {boolean}
+   */
+  isSimulateButtonEnabled() {
+    return !this.toolbarActionsSimulateButton.hasAttribute("disabled");
+  }
+
+  /**
+   * Simulates a click on the "Save settings" button.
+   * To work properly, the form needs to be valid otherwise the sate doesn't change and this blocks the test.
+   * @returns {Promise<void>}
+   */
+  async saveSettings() {
+    await this.click(this.toolbarActionsSaveButton);
+  }
+
+  /**
+   * Simulates a click on the "Test settings" button.
+   * To work properly, the form needs to be valid otherwise the sate doesn't change and this blocks the test.
+   * @returns {Promise<void>}
+   */
+  async testSettings() {
+    await this.click(this.toolbarActionsTestButton);
+  }
+
+  /**
+   * Simulates a click on the "Simutate settings" button.
+   * To work properly, the form needs to be valid otherwise the sate doesn't change and this blocks the test.
+   * @returns {Promise<void>}
+   */
+  async simulateSettings() {
+    await this.click(this.toolbarActionsSimulateButton);
+  }
+
+  /**
+   * Simulates a click on the "Synchronize settings" button.
+   * To work properly, the form needs to be valid otherwise the sate doesn't change and this blocks the test.
+   * @returns {Promise<void>}
+   */
+  async synchronizeSettings() {
+    await this.click(this.toolbarActionsSynchronizeButton);
+  }
+
 
   /** Click on the element */
   async click(element) {

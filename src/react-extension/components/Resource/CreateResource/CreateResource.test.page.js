@@ -13,14 +13,13 @@
  * @since         2.11.0
  */
 import {fireEvent, render, waitFor} from "@testing-library/react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import React from "react";
 import ManageDialogs from "../../Common/Dialog/ManageDialogs/ManageDialogs";
 import DialogContextProvider from "../../../contexts/DialogContext";
 import {MemoryRouter} from "react-router-dom";
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
 import CreateResource from "./CreateResource";
-
 /**
  * The PasswordCreateDialog component represented as a page
  */
@@ -137,6 +136,13 @@ class PasswordCreatePageObject {
   }
 
   /**
+   * Returns the name warning mesage input element
+   */
+  get nameWarningMessage() {
+    return this._container.querySelector('.name.warning-message');
+  }
+
+  /**
    * Returns the uri input element
    */
   get uri() {
@@ -144,10 +150,24 @@ class PasswordCreatePageObject {
   }
 
   /**
+   * Returns the uri warning mesage input element
+   */
+  get uriWarningMessage() {
+    return this._container.querySelector('.uri.warning-message');
+  }
+
+  /**
    * Returns the username / email input element
    */
   get username() {
     return this._container.querySelector('#create-password-form-username');
+  }
+
+  /**
+   * Returns the username warning mesage input element
+   */
+  get usernameWarningMessage() {
+    return this._container.querySelector('.username.warning-message');
   }
 
   /**
@@ -162,6 +182,20 @@ class PasswordCreatePageObject {
    */
   get passwordErrorMessage() {
     return this._container.querySelector('.password.error-message');
+  }
+
+  /**
+   * Returns the password warning mesage input element
+   */
+  get passwordWarningMessage() {
+    return this._container.querySelector('.password.warning-message');
+  }
+
+  /**
+   * Returns the pwned warning message
+   */
+  get pwnedWarningMessage() {
+    return this._container.querySelector('.pwned-password.warning-message');
   }
 
   /**
@@ -187,6 +221,13 @@ class PasswordCreatePageObject {
   }
 
   /**
+   * Returns the description warning mesage input element
+   */
+  get descriptionWarningMessage() {
+    return this._container.querySelector('.description.warning-message');
+  }
+
+  /**
    * Returns the progress bar element
    */
   get progressBar() {
@@ -197,7 +238,7 @@ class PasswordCreatePageObject {
    * Returns the password view button element
    */
   get passwordViewButton() {
-    return this._container.querySelector('.password-view.button .svg-icon');
+    return this._container.querySelector('.password-view .svg-icon');
   }
 
   /**
@@ -214,16 +255,12 @@ class PasswordCreatePageObject {
     return this._container.querySelector('.password-generator');
   }
 
-
-
   /**
    * Returns the save button element
    */
   get saveButton() {
     return this._container.querySelector('.submit-wrapper button[type=\"submit\"]');
   }
-
-
 
   /**
    * Returns the cancel button element
@@ -239,8 +276,6 @@ class PasswordCreatePageObject {
   get errorDialogMessage() {
     return this._container.querySelector('.error-dialog .dialog .dialog-content .form-content');
   }
-
-
 
   /**
    * Returns true if the page object exists in the container
@@ -275,9 +310,21 @@ class PasswordCreatePageObject {
     fireEvent.change(element, dataInputEvent);
   }
 
+  /** fill the input password with data */
+  async fillInputPassword(data)  {
+    const dataInputEvent = {target: {value: data}};
+    fireEvent.change(this.password, dataInputEvent);
+    jest.runAllTimers();
+  }
+
   /** focus the input element with data */
   focusInput(element)  {
     fireEvent.focus(element);
+  }
+
+  /** on keypup element */
+  keyUpInput(component)  {
+    fireEvent.keyUp(component, {keyCode: 38});
   }
 
   /** blur the input element with data */
@@ -288,5 +335,6 @@ class PasswordCreatePageObject {
   /** Open the password generator*/
   async openPasswordGenerator() {
     await this.click(this.passwordGeneratorButton);
+    jest.runAllTimers();
   }
 }

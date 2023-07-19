@@ -13,7 +13,7 @@
  */
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import DialogWrapper from "../../Common/Dialog/DialogWrapper/DialogWrapper";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import NotifyError from "../../Common/Error/NotifyError/NotifyError";
@@ -126,7 +126,7 @@ class DeleteResourceTag extends Component {
           <div className="form-content">
             <p>
               <Trans>
-                Are you sure you want to delete the tag <strong>{{tagName: this.props.context.tagToDelete.slug}}</strong>?
+                Are you sure you want to delete the tag <strong className="dialog-variable">{{tagName: this.props.context.tagToDelete.slug}}</strong>?
               </Trans>
             </p>
             <p><Trans>Once the tag is deleted, it’ll be removed permanently and will not be recoverable.</Trans></p>

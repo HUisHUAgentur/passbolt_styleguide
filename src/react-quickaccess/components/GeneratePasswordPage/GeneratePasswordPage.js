@@ -12,6 +12,7 @@ import Transition from "react-transition-group/cjs/Transition";
 import Icon from "../../../shared/components/Icons/Icon";
 import Password from "../../../shared/components/Password/Password";
 import PasswordComplexity from "../../../shared/components/PasswordComplexity/PasswordComplexity";
+import ClipBoard from '../../../shared/lib/Browser/clipBoard';
 
 class GeneratePasswordPage extends React.Component {
   constructor(props) {
@@ -115,7 +116,7 @@ class GeneratePasswordPage extends React.Component {
    */
   async handleCopyPassword() {
     this.setState({copySecretState: 'processing'});
-    await navigator.clipboard.writeText(this.state.password);
+    await ClipBoard.copy(this.state.password, this.props.context.port);
     this.setState({copySecretState: 'done'});
     setTimeout(() => {
       this.setState({copySecretState: 'default'});
@@ -159,7 +160,7 @@ class GeneratePasswordPage extends React.Component {
               <Icon name="chevron-left"/>
               <span className="primary-action-title"><Trans>Generate password</Trans></span>
             </a>
-            <Link to="/data/quickaccess.html" className="secondary-action button-transparent button"
+            <Link to="/webAccessibleResources/quickaccess.html" className="secondary-action button-transparent button"
               title={this.translate("Cancel")}>
               <Icon name="close"/>
               <span className="visually-hidden"><Trans>Cancel</Trans></span>
@@ -238,7 +239,6 @@ class GeneratePasswordPage extends React.Component {
               <button
                 type="submit"
                 className={`button primary big full-width ${this.state.processing ? 'processing' : ''}`}
-                role="button"
                 disabled={this.state.processing || this.isPasswordEmpty()}>
                 <Trans>Apply</Trans>
                 {this.state.processing &&
@@ -255,6 +255,7 @@ class GeneratePasswordPage extends React.Component {
 }
 
 GeneratePasswordPage.propTypes = {
+  context: PropTypes.any, // The application context
   prepareResourceContext: PropTypes.any, // The password generator context
   history: PropTypes.any, // The history router
   t: PropTypes.func, // The translation function

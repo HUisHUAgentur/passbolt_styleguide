@@ -16,7 +16,7 @@ import PropTypes from "prop-types";
 import UserAvatar from "../../Common/Avatar/UserAvatar";
 import GroupAvatar from "../../Common/Avatar/GroupAvatar";
 import Icon from "../../../../shared/components/Icons/Icon";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withDialog} from "../../../contexts/DialogContext";
 import ShareDialog from "../../Share/ShareDialog";
 import {withResourceWorkspace} from "../../../contexts/ResourceWorkspaceContext";
@@ -195,7 +195,7 @@ class DisplayResourceFolderDetailsPermissions extends React.Component {
       <div className={`sharedwith accordion sidebar-section ${this.state.open ? "" : "closed"}`}>
         <div className="accordion-header">
           <h4>
-            <a onClick={this.handleTitleClickEvent} role="button">
+            <button className="link no-border" type="button" onClick={this.handleTitleClickEvent}>
               <Trans>Shared with</Trans>
               {this.state.open &&
               <Icon name="caret-down"/>
@@ -203,15 +203,15 @@ class DisplayResourceFolderDetailsPermissions extends React.Component {
               {!this.state.open &&
               <Icon name="caret-right"/>
               }
-            </a>
+            </button>
           </h4>
         </div>
         <div className="accordion-content">
           {this.canShare() &&
-          <a onClick={this.handlePermissionsEditClickEvent} className="section-action button button-transparent">
+          <button type="button" onClick={this.handlePermissionsEditClickEvent} className="section-action button-transparent">
             <Icon name="edit"/>
             <span className="visuallyhidden"><Trans>modify</Trans></span>
-          </a>
+          </button>
           }
           <div>
             <ul className="shared-with ready">
@@ -233,7 +233,7 @@ class DisplayResourceFolderDetailsPermissions extends React.Component {
                   <UserAvatar user={permission.user} baseUrl={this.props.context.userSettings.getTrustedDomain()}/>
                   }
                   {permission.group &&
-                  <GroupAvatar group={permission.group} baseUrl={this.props.context.userSettings.getTrustedDomain()}/>
+                  <GroupAvatar group={permission.group}/>
                   }
                 </li>
               ))}

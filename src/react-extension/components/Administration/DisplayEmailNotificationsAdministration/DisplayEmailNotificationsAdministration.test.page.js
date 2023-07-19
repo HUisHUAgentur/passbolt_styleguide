@@ -12,10 +12,12 @@
  * @since         2.11.0
  */
 import {fireEvent, render, waitFor} from "@testing-library/react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import React from "react";
 import DisplayEmailNotificationsAdministration from "./DisplayEmailNotificationsAdministration";
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
+import {AdminEmailNotificationContextProvider} from "../../../contexts/Administration/AdministrationEmailNotification/AdministrationEmailNotificationContext";
+import DisplayAdministrationEmailNotificationActions from "../DisplayAdministrationWorkspaceActions/DisplayAdministrationEmailNotificationActions/DisplayAdministrationEmailNotificationActions";
 
 /**
  * The DisplayEmailNotificationsAdministration component represented as a page
@@ -30,17 +32,10 @@ export default class DisplayEmailNotificationsAdministrationPage {
     this._page = render(
       <MockTranslationProvider>
         <AppContext.Provider value={appContext}>
-          <DisplayEmailNotificationsAdministration {...props}/>
-        </AppContext.Provider>
-      </MockTranslationProvider>
-    );
-  }
-
-  rerender(appContext, props) {
-    this._page.rerender(
-      <MockTranslationProvider>
-        <AppContext.Provider value={appContext}>
-          <DisplayEmailNotificationsAdministration {...props}/>
+          <AdminEmailNotificationContextProvider  {...props}>
+            <DisplayAdministrationEmailNotificationActions />
+            <DisplayEmailNotificationsAdministration {...props}/>
+          </AdminEmailNotificationContextProvider>
         </AppContext.Provider>
       </MockTranslationProvider>
     );
@@ -53,6 +48,13 @@ export default class DisplayEmailNotificationsAdministrationPage {
     return this._page.container.querySelector('.email-notification-settings');
   }
 
+  /**
+   * Returns the HTMLElement button of the toolbar that is the "Save Settings"
+   * @returns {HTMLElement}
+   */
+  get toolbarActionsSaveButton() {
+    return this._page.container.querySelectorAll(".actions-wrapper .actions button")[0];
+  }
   /**
    * Returns the password create input element
    */
@@ -213,6 +215,23 @@ export default class DisplayEmailNotificationsAdministrationPage {
     fireEvent.click(element, leftClick);
     await waitFor(() => {
     });
+  }
+
+  /**
+   * Returns true if the save button in the toolbar is enabled.
+   * @returns {boolean}
+   */
+  isSaveButtonEnabled() {
+    return !this.toolbarActionsSaveButton.hasAttribute("disabled");
+  }
+
+  /**
+   * Simulates a click on the "Save settings" button.
+   * To work properly, the form needs to be valid otherwise the sate doesn't change and this blocks the test.
+   * @returns {Promise<void>}
+   */
+  async saveSettings() {
+    await this.click(this.toolbarActionsSaveButton);
   }
 
   /** Click on the comment add element */

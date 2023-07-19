@@ -16,7 +16,7 @@ import Icon from "../../../../shared/components/Icons/Icon";
 import FilterResourcesByFoldersItem from "./FilterResourcesByFoldersItem";
 import {ResourceWorkspaceFilterTypes, withResourceWorkspace} from "../../../contexts/ResourceWorkspaceContext";
 import {withRouter} from "react-router-dom";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import FilterResourcesByRootFolderContextualMenu from "./FilterResourcesByRootFolderContextualMenu";
 import {withContextualMenu} from "../../../contexts/ContextualMenuContext";
 import PropTypes from "prop-types";
@@ -326,7 +326,7 @@ class FilterResourcesByFolders extends React.Component {
                 <div className="main-cell">
                   <h3>
                     <span className="folders-label">
-                      <a role="button"
+                      <button type="button" className="link no-border"
                         onDragOver={this.handleDragOverTitle}
                         onDragLeave={this.handleDragLeaveTitle}
                         onDrop={this.handleDropTitle}
@@ -343,15 +343,15 @@ class FilterResourcesByFolders extends React.Component {
                           </div>
                         }
                         <Trans>Folders</Trans>
-                      </a>
+                      </button>
                     </span>
                   </h3>
                 </div>
               </div>
               <div className="dropdown right-cell more-ctrl">
-                <a className={`button ${this.state.moreMenuOpen ? "open" : ""}`} onClick={this.handleTitleMoreClickEvent}>
+                <button type="button" className={`link no-border ${this.state.moreMenuOpen ? "open" : ""}`} onClick={this.handleTitleMoreClickEvent}>
                   <Icon name="3-dots-h"/>
-                </a>
+                </button>
               </div>
             </div>
           </div>

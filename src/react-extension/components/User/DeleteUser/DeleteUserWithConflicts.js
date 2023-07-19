@@ -13,7 +13,7 @@
  */
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import DialogWrapper from "../../Common/Dialog/DialogWrapper/DialogWrapper";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import NotifyError from "../../Common/Error/NotifyError/NotifyError";
@@ -501,7 +501,7 @@ class DeleteUserWithConflicts extends Component {
           <div className="form-content intro">
             <p>
               <Trans>
-                You are about to delete the user <strong>{{user: this.getUserFullName(this.userToDelete)}}</strong>.
+                You are about to delete the user <strong className="dialog-variable">{{user: this.getUserFullName(this.userToDelete)}}</strong>.
               </Trans>
             </p>
             <p><Trans>This user is the sole owner of some content. You need to transfer the ownership to others to continue.</Trans></p>

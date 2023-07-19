@@ -20,10 +20,13 @@ import DisplayResourceDetailsComment from "./DisplayResourceDetailsComment";
 import DisplayResourceDetailsDescription from "./DisplayResourceDetailsDescription";
 import {withResourceWorkspace} from "../../../contexts/ResourceWorkspaceContext";
 import DisplayResourceDetailsPermission from "./DisplayResourceDetailsPermission";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import DisplayResourceDetailsActivity from "./DisplayResourceDetailsActivity";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import {withTranslation, Trans} from "react-i18next";
+import ClipBoard from '../../../../shared/lib/Browser/clipBoard';
+import {uiActions} from "../../../../shared/services/rbacs/uiActionEnumeration";
+import {withRbac} from "../../../../shared/context/Rbac/RbacContext";
 
 class DisplayResourceDetails extends React.Component {
   /**
@@ -72,7 +75,7 @@ class DisplayResourceDetails extends React.Component {
   async handlePermalinkClick() {
     const baseUrl = this.props.context.userSettings.getTrustedDomain();
     const permalink = `${baseUrl}/app/passwords/view/${this.props.resourceWorkspaceContext.details.resource.id}`;
-    await this.props.context.port.request("passbolt.clipboard.copy", permalink);
+    await ClipBoard.copy(permalink, this.props.context.port);
     this.props.actionFeedbackContext.displaySuccess(this.translate("The permalink has been copied to clipboard"));
   }
 
@@ -96,9 +99,13 @@ class DisplayResourceDetails extends React.Component {
    * @returns {JSX}
    */
   render() {
-    const canUseTags = this.props.context.siteSettings.canIUse("tags");
-    const canUseAuditLog = this.props.context.siteSettings.canIUse("auditLog") ||
-      this.props.context.siteSettings.canIUse("audit_log"); // @deprecated remove with v4
+    const canUseTags = this.props.context.siteSettings.canIUse("tags")
+      && this.props.rbacContext.canIUseUiAction(uiActions.TAGS_USE);
+    const canUseAuditLog = (this.props.context.siteSettings.canIUse("auditLog")
+      || this.props.context.siteSettings.canIUse("audit_log")) // @deprecated remove with v4
+      && this.props.rbacContext.canIUseUiAction(uiActions.RESOURCES_SEE_ACTIVITIES);
+    const canViewShare = this.props.rbacContext.canIUseUiAction(uiActions.SHARE_VIEW_LIST);
+    const canSeeComments = this.props.rbacContext.canIUseUiAction(uiActions.RESOURCES_SEE_COMMENTS);
 
     return (
       <div className="panel aside ready">
@@ -110,25 +117,29 @@ class DisplayResourceDetails extends React.Component {
             <h3>
               <div className="title-wrapper">
                 <span className="name">{this.props.resourceWorkspaceContext.details.resource.name}</span>
-                <a className="title-link" title={this.translate("Copy the link to this password")} onClick={this.handlePermalinkClick}>
+                <button type="button" className="title-link link no-border" title={this.translate("Copy the link to this password")} onClick={this.handlePermalinkClick}>
                   <Icon name="link"/>
                   <span className="visuallyhidden"><Trans>Copy the link to this password</Trans></span>
-                </a>
+                </button>
               </div>
               <span className="subtitle">{this.subtitle}</span>
             </h3>
-            <a className="dialog-close button button-transparent" onClick={this.handleCloseClick}>
+            <button type="button" className="dialog-close button-transparent" onClick={this.handleCloseClick}>
               <Icon name="close"/>
               <span className="visuallyhidden"><Trans>Close</Trans></span>
-            </a>
+            </button>
           </div>
           <DisplayResourceDetailsInformation/>
           <DisplayResourceDetailsDescription/>
-          <DisplayResourceDetailsPermission/>
+          {canViewShare &&
+            <DisplayResourceDetailsPermission/>
+          }
           {canUseTags &&
           <DisplayResourceDetailsTag/>
           }
+          {canSeeComments &&
           <DisplayResourceDetailsComment/>
+          }
           {canUseAuditLog &&
           <DisplayResourceDetailsActivity/>
           }
@@ -140,9 +151,10 @@ class DisplayResourceDetails extends React.Component {
 
 DisplayResourceDetails.propTypes = {
   context: PropTypes.any, // The application context
+  rbacContext: PropTypes.any, // The role based access control context
   resourceWorkspaceContext: PropTypes.object,
   actionFeedbackContext: PropTypes.any, // The action feedback context
   t: PropTypes.func, // The translation function
 };
 
-export default withAppContext(withResourceWorkspace(withActionFeedback(withTranslation('common')(DisplayResourceDetails))));
+export default withAppContext(withRbac(withResourceWorkspace(withActionFeedback(withTranslation('common')(DisplayResourceDetails)))));

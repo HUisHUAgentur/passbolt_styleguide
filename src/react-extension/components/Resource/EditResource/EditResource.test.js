@@ -22,9 +22,6 @@ import {defaultProps, mockResource} from "./EditResource.test.data";
 import EditResourcePage from "./EditResource.test.page";
 import "../../../test/lib/crypto/cryptoGetRandomvalues";
 
-beforeEach(() => {
-  jest.resetModules();
-});
 
 describe("See the Edit Resource", () => {
   let page; // The page to test against
@@ -36,15 +33,22 @@ describe("See the Edit Resource", () => {
     id: "8e3874ae-4b40-590b-968a-418f704b9d9a"
   };
 
-  const mockContextRequest = implementation => jest.spyOn(props.context.port, 'request').mockImplementation(implementation);
+  const truncatedWarningMessage = "Warning: this is the maximum size for this field, make sure your data was not truncated.";
 
   describe('As LU I can start adding a password', () => {
+    const mockContextRequest = implementation => jest.spyOn(props.context.port, 'request').mockImplementation(implementation);
     /**
      * I should see the edit password dialog
      */
     beforeEach(() => {
+      jest.useFakeTimers();
+      jest.resetModules();
       props.context.setContext({passwordEditDialogProps});
       page = new EditResourcePage(props);
+    });
+
+    afterEach(() => {
+      jest.clearAllTimers();
     });
 
     it('matches the styleguide', () => {
@@ -125,13 +129,14 @@ describe("See the Edit Resource", () => {
     });
 
     it('requests the addon to edit a resource with encrypted description when clicking on the submit button.', async() => {
-      expect(page.passwordEdit.exists()).toBeTruthy();
+      //Avoid to block with the beforeMount when checking current password
+      jest.runAllTimers();
       // edit password
       const resourceMeta = {
         name: "Password name",
         uri: "https://uri.dev",
         username: "Password username",
-        password: "password-value",
+        password: "password-value12345",
         description: "Password description"
       };
       // Fill the form
@@ -142,10 +147,12 @@ describe("See the Edit Resource", () => {
       await waitFor(() => {
         expect(page.passwordEdit.password.disabled).toBeTruthy();
       });
-      page.passwordEdit.fillInput(page.passwordEdit.password, resourceMeta.password);
-      page.passwordEdit.blurInput(page.passwordEdit.password);
+      await page.passwordEdit.fillInputPassword(resourceMeta.password);
+      await page.passwordEdit.blurInput(page.passwordEdit.password);
+
       expect(page.passwordEdit.complexityText.textContent).not.toBe("Quality");
       expect(page.passwordEdit.progressBar.classList.contains("error")).toBe(false);
+
       page.passwordEdit.fillInput(page.passwordEdit.description, resourceMeta.description);
 
       const requestMockImpl = jest.fn();
@@ -228,7 +235,7 @@ describe("See the Edit Resource", () => {
       await waitFor(() => {
         expect(page.passwordEdit.password.classList).toContain("decrypted");
       });
-      page.passwordEdit.fillInput(page.passwordEdit.password, "");
+      await page.passwordEdit.fillInputPassword("");
       page.passwordEdit.blurInput(page.passwordEdit.password);
       await page.passwordEdit.click(page.passwordEdit.saveButton);
 
@@ -261,7 +268,7 @@ describe("See the Edit Resource", () => {
       await waitFor(() => {
         expect(page.passwordEdit.password.classList).toContain("decrypted");
       });
-      page.passwordEdit.fillInput(page.passwordEdit.password, "password");
+      await page.passwordEdit.fillInputPassword("password");
       page.passwordEdit.blurInput(page.passwordEdit.password);
 
       jest.spyOn(props.context.port, 'request').mockImplementationOnce(() => {
@@ -286,7 +293,7 @@ describe("See the Edit Resource", () => {
       await waitFor(() => {
         expect(page.passwordEdit.password.classList).toContain("decrypted");
       });
-      page.passwordEdit.fillInput(page.passwordEdit.password, "password");
+      await page.passwordEdit.fillInputPassword("password");
       page.passwordEdit.blurInput(page.passwordEdit.password);
 
       // Mock the request function to make it the expected result
@@ -309,6 +316,52 @@ describe("See the Edit Resource", () => {
       jest.spyOn(props.dialogContext, 'open').mockImplementationOnce(jest.fn);
       await page.passwordEdit.openPasswordGenerator();
       expect(props.dialogContext.open).toBeCalled();
+    });
+
+    it("As a user I should see a feedback when the password, descriptions, name, username or uri fields content is truncated by a field limit", async() => {
+      expect.assertions(5);
+      await page.passwordEdit.fillInputPassword('a'.repeat(4097));
+      page.passwordEdit.fillInput(page.passwordEdit.description, 'a'.repeat(10000));
+      page.passwordEdit.fillInput(page.passwordEdit.name, 'a'.repeat(256));
+      page.passwordEdit.fillInput(page.passwordEdit.username, 'a'.repeat(255));
+      page.passwordEdit.fillInput(page.passwordEdit.uri, 'a'.repeat(1025));
+
+      await page.passwordEdit.keyUpInput(page.passwordEdit.password);
+      await page.passwordEdit.keyUpInput(page.passwordEdit.description);
+      await page.passwordEdit.keyUpInput(page.passwordEdit.username);
+      await page.passwordEdit.keyUpInput(page.passwordEdit.name);
+      await page.passwordEdit.keyUpInput(page.passwordEdit.uri);
+
+      expect(page.passwordEdit.passwordWarningMessage.textContent).toEqual(truncatedWarningMessage);
+      expect(page.passwordEdit.descriptionWarningMessage.textContent).toEqual(truncatedWarningMessage);
+      expect(page.passwordEdit.nameWarningMessage.textContent).toEqual(truncatedWarningMessage);
+      expect(page.passwordEdit.uriWarningMessage.textContent).toEqual(truncatedWarningMessage);
+      expect(page.passwordEdit.usernameWarningMessage.textContent).toEqual(truncatedWarningMessage);
+    });
+
+    it("As a signed-in user editing a password on the application, I should get warn when I enter a pwned password and not be blocked", async() => {
+      expect.assertions(2);
+
+      mockContextRequest(() => Promise.resolve(2));
+      await page.passwordEdit.fillInputPassword('hello-world');
+      await waitFor(() => {});
+      // we expect a warning to inform about powned password
+      expect(page.passwordEdit.pwnedWarningMessage.textContent).toEqual("The password is part of an exposed data breach.");
+
+      mockContextRequest(() => Promise.reject());
+      await page.passwordEdit.fillInputPassword('another test');
+      await waitFor(() => {});
+      // we expect a warning to inform about a network issue
+      expect(page.passwordEdit.pwnedWarningMessage.textContent).toEqual("The pwnedpasswords service is unavailable, your password might be part of an exposed data breach");
+    });
+
+    it("As a signed-in user editing a password on the application, I should see a complexity as Quality if the passphrase is empty", async() => {
+      expect.assertions(2);
+
+      await page.passwordEdit.fillInputPassword("");
+      await waitFor(() => {});
+      expect(page.passwordEdit.pwnedWarningMessage).toBeNull();
+      expect(page.passwordEdit.complexityText.textContent).toBe("Quality");
     });
   });
 });

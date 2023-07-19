@@ -14,7 +14,7 @@
 import React, {Component} from "react";
 import PropTypes from "prop-types";
 import {Trans, withTranslation} from "react-i18next";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {
   AuthenticationSetupWorkflowStates,
   withAuthenticationSetupContext
@@ -79,6 +79,10 @@ class SetupAuthentication extends Component {
         return <ChooseSecurityToken
           onComplete={this.props.authenticationSetupContext.chooseSecurityToken}
         />;
+      case AuthenticationSetupWorkflowStates.CONFIGURING_SSO:
+        return <LoadingSpinner
+          title={<Trans>Configuring SSO access, please wait...</Trans>}
+        />;
       case AuthenticationSetupWorkflowStates.COMPLETING_SETUP:
         return <LoadingSpinner
           title={<Trans>Completing setup, please wait...</Trans>}
@@ -90,6 +94,11 @@ class SetupAuthentication extends Component {
       case AuthenticationSetupWorkflowStates.UNEXPECTED_ERROR:
         return <DisplayUnexpectedError
           error={this.props.authenticationSetupContext.error}
+        />;
+      case AuthenticationSetupWorkflowStates.RETRY_SETUP:
+        return <DisplayUnexpectedError
+          title={<Trans>Time is up</Trans>}
+          message={<><Trans>You took too long to set up your account.</Trans> <Trans>Please try again.</Trans></>}
         />;
       case AuthenticationSetupWorkflowStates.LOADING:
         return <LoadingSpinner/>;

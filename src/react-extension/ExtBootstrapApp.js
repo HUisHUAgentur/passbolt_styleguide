@@ -16,7 +16,6 @@ import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
 import PropTypes from "prop-types";
 import InsertAppIframe from "./components/InsertAppIframe";
 import InsertFileIframe from "./components/InsertFileIframe";
-import InsertClipboardIframe from "./components/InsertClipboardIframe";
 import UserSettings from "../shared/lib/Settings/UserSettings";
 import HandleLegacyAppjs from "./components/Common/Legacy/HandleLegacyAppjs";
 import HandleExtAppBootstrapRouteChangeRequested from "./components/Common/Route/HandleExtAppBootstrapRouteChangeRequested";
@@ -128,7 +127,9 @@ class ExtBootstrapApp extends Component {
               "/app/administration/mfa",
               "/app/administration/users-directory",
               "/app/administration/email-notification",
-              "/app/settings/mfa"
+              "/app/administration/smtp-settings",
+              "/app/settings/mfa/:provider",
+              "/app/settings/mfa",
             ]}>
               <>
                 {this.isLegacyAppjs &&
@@ -140,6 +141,7 @@ class ExtBootstrapApp extends Component {
               "/app/account-recovery/requests/review/:accountRecoveryRequestId",
               "/app/administration/subscription",
               "/app/administration/account-recovery",
+              "/app/administration/sso",
               "/app/folders/view/:filterByFolderId",
               "/app/groups/view/:selectedGroupId",
               "/app/groups/edit/:selectedGroupId",
@@ -162,9 +164,8 @@ class ExtBootstrapApp extends Component {
               {this.isLegacyAppjs &&
               <CleanupLegacyAppjs/>
               }
-              <InsertAppIframe browserExtensionUrl={this.props.browserExtensionUrl}/>
-              <InsertClipboardIframe browserExtensionUrl={this.props.browserExtensionUrl}/>
-              <InsertFileIframe browserExtensionUrl={this.props.browserExtensionUrl}/>
+              <InsertAppIframe port={this.props.port} browserExtensionUrl={this.props.browserExtensionUrl}/>
+              <InsertFileIframe port={this.props.port} browserExtensionUrl={this.props.browserExtensionUrl}/>
             </Route>
           </Switch>
         </Router>

@@ -17,7 +17,7 @@
 import {fireEvent, render, waitFor} from "@testing-library/react";
 import React from "react";
 import {BrowserRouter as Router} from "react-router-dom";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import ManageContextualMenu from "../../Common/ContextualMenu/ManageContextualMenu";
 import ContextualMenuContextProvider from "../../../contexts/ContextualMenuContext";
 import FilterResourcesByTagsContextualMenuPageObject from "./FilterResourcesByTagsContextualMenu.test.page";
@@ -123,7 +123,7 @@ class TitleHeaderPageObject {
    * Returns the clickable area of the filter
    */
   get filterButton() {
-    return this._container.querySelector('.row.title .dropdown.right-cell.more-ctrl a');
+    return this._container.querySelector('.row.title .dropdown.right-cell.more-ctrl button');
   }
 
   /** Click on the component */
@@ -168,7 +168,7 @@ class SidebarTagFilterSectionPageObject {
    * Returns the clickable area of the more tag
    */
   get moreButton() {
-    return this._container.querySelector('.tag-item .dropdown.right-cell.more-ctrl a');
+    return this._container.querySelector('.tag-item .dropdown.right-cell.more-ctrl button');
   }
 
   /**
@@ -204,7 +204,7 @@ class SidebarTagFilterSectionPageObject {
    * @param index
    */
   get tagSelected() {
-    return this.list.querySelector('.tag-item .row.selected .main-cell-wrapper .main-cell a');
+    return this.list.querySelector('.tag-item .row.selected .main-cell-wrapper .main-cell button');
   }
 
   /**
@@ -212,7 +212,7 @@ class SidebarTagFilterSectionPageObject {
    * @param index
    */
   tag(index) {
-    return this.list.querySelectorAll('.tag-item')[index - 1].querySelector('.row .main-cell-wrapper .main-cell a');
+    return this.list.querySelectorAll('.tag-item')[index - 1].querySelector('.row .main-cell-wrapper .main-cell button');
   }
 
   /**

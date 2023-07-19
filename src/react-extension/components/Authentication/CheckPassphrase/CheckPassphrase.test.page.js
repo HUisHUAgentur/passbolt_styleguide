@@ -76,7 +76,14 @@ export default class CheckPassphrasePage {
    * Returns the secondary action link element
    */
   get secondaryActionLink() {
-    return this._page.container.querySelector('.form-actions a');
+    return this._page.container.querySelector('.form-actions button.link');
+  }
+
+  /**
+   * Returns the warning message for powned password
+   */
+  get warningMessage() {
+    return this._page.container.querySelector('.warning-message');
   }
 
   /**
@@ -124,6 +131,7 @@ export default class CheckPassphrasePage {
    */
   async fillPassphrase(passphrase) {
     fireEvent.change(this.passphraseInput, {target: {value: passphrase}});
+    jest.runAllTimers();
     await waitFor(() => {});
   }
 

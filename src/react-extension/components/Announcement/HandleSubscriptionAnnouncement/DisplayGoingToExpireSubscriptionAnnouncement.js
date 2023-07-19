@@ -19,7 +19,7 @@ import {DateTime} from "luxon";
 import {withNavigationContext} from "../../../contexts/NavigationContext";
 import {Trans, withTranslation} from "react-i18next";
 import {withAnnouncement} from "../../../contexts/AnnouncementContext";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 
 /**
  * This component allows to display the subscription announcement
@@ -46,9 +46,9 @@ class DisplayGoingToExpireSubscriptionAnnouncement extends React.Component {
         <p>
           <Trans>Warning:</Trans>&nbsp;
           <Trans>your subscription key will expire</Trans> {this.formatDateTimeAgo(this.props.expiry)}.
-          <a onClick={this.props.navigationContext.onGoToAdministrationSubscriptionRequested}>
+          <button className="link" type="button" onClick={this.props.navigationContext.onGoToAdministrationSubscriptionRequested}>
             <Trans>Manage Subscription</Trans>
-          </a>
+          </button>
         </p>
       </AnnouncementWrapper>
     );

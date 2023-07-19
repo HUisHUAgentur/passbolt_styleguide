@@ -104,9 +104,7 @@ describe("Resource Workspace Context", () => {
       expect(page.filteredResources).toBe(context.resources);
     });
 
-    it("AS LU I should have the most recent created resource when the filter is RECENTLY-MODIFIED", async() => {
-      // TODO
-    });
+    it.todo("AS LU I should have the most recent created resource when the filter is RECENTLY-MODIFIED");
 
     it("AS LU I should have resources shared with me when the filter is SHARED-WITH-ME", async() => {
       const expectedResourcesCount = 16;
@@ -223,6 +221,7 @@ describe("Resource Workspace Context", () => {
 
     it("As LU, I should detail a resource when a resource is selected", async() => {
       const resource = context.resources[0];
+      await page.goToAllItems();
       await page.select(resource);
       expect(page.details.resource).toBe(resource);
       expect(page.lockDisplayDetail).toBeTruthy();

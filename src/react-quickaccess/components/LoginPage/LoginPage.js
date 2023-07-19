@@ -1,10 +1,12 @@
 import React from "react";
 import PropTypes from "prop-types";
 import {withRouter} from "react-router-dom";
-import {withAppContext} from "../../contexts/AppContext";
 import {Trans, withTranslation} from "react-i18next";
 import Icon from "../../../shared/components/Icons/Icon";
 import Password from "../../../shared/components/Password/Password";
+import SsoProviders from "../../../react-extension/components/Administration/ManageSsoSettings/SsoProviders.data";
+import {withSso} from "../../contexts/SsoContext";
+import {withAppContext} from "../../../shared/context/AppContext/AppContext";
 
 class LoginPage extends React.Component {
   constructor(props) {
@@ -17,22 +19,34 @@ class LoginPage extends React.Component {
   initEventHandlers() {
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleSwitchToPassphrase = this.handleSwitchToPassphrase.bind(this);
+    this.handleSwitchToSso = this.handleSwitchToSso.bind(this);
+    this.handleSignInWithSso = this.handleSignInWithSso.bind(this);
   }
 
   initState() {
     return {
       error: "",
+      ssoError: null,
       processing: false,
-      passphrase: "",
       rememberMe: false,
+      displaySso: false,
+      isSsoAvailable: false,
+      isReady: false,
     };
   }
 
   /**
    * Whenever the component is mounted
    */
-  componentDidMount() {
-    this.focusOnPassphrase();
+  async componentDidMount() {
+    await this.props.ssoContext.loadSsoConfiguration();
+    if (this.props.ssoContext.hasUserAnSsoKit()) {
+      this.setState({isSsoAvailable: true, displaySso: true, isReady: true});
+    } else {
+      this.setState({isReady: true});
+      this.focusOnPassphrase();
+    }
   }
 
   /**
@@ -59,12 +73,18 @@ class LoginPage extends React.Component {
   }
 
   async login() {
-    await this.props.context.port.request("passbolt.auth.login", this.state.passphrase, this.state.rememberMe);
-    const isMfaRequired = await this.props.context.port.request("passbolt.auth.is-mfa-required");
+    let passphrase = this.passphraseInputRef.current.value;
+    await this.props.context.port.request("passbolt.auth.login", passphrase, this.state.rememberMe);
+    passphrase = null;
+    this.passphraseInputRef.current.value = null;
+    await this.handleLoginSuccess();
+  }
 
+  async handleLoginSuccess() {
+    const isMfaRequired = await this.props.context.port.request("passbolt.auth.is-mfa-required");
     if (!isMfaRequired) {
       this.props.loginSuccessCallback();
-      this.props.history.push("/data/quickaccess.html");
+      this.props.history.push("/webAccessibleResources/quickaccess.html");
     } else {
       this.props.mfaRequiredCallback(this.props.context.userSettings.getTrustedDomain());
     }
@@ -80,10 +100,79 @@ class LoginPage extends React.Component {
     });
   }
 
+  /**
+   * Switches the UI to the SSO mode.
+   */
+  handleSwitchToSso(event) {
+    event.preventDefault();
+    this.setState({displaySso: true, ssoError: null});
+  }
+
+  /**
+   * Switches the UI to the passphrase mode.
+   */
+  handleSwitchToPassphrase(event) {
+    event.preventDefault();
+    this.setState({displaySso: false});
+  }
+
+  /**
+   * Handle the click on the SSO login button.
+   * @returns {Promise<void>}
+   */
+  async handleSignInWithSso(event) {
+    event.preventDefault();
+    this.setState({processing: true, ssoError: ""});
+    //save the current window blur behaviour option
+    const currentWindowBlurState = this.props.context.shouldCloseAtWindowBlur;
+    this.props.context.setWindowBlurBehaviour(false);
+    try {
+      await this.props.ssoContext.runSignInProcess();
+      await this.handleLoginSuccess();
+    } catch (e) {
+      if (e.name === "SsoSettingsChangedError") {
+        window.close();
+      }
+      if (e.name !== "UserAbortsOperationError") {
+        this.setState({ssoError: e.message});
+      }
+    } finally {
+      this.setState({
+        processing: false
+      });
+      //rollback the current window blur behaviour option
+      this.props.context.setWindowBlurBehaviour(currentWindowBlurState);
+    }
+  }
+
+  /**
+   * Returns true if SSO is enabled and configured for Azure.
+   * @return {bool}
+   */
+  get isSsoLocalKitPresent() {
+    const ssoProvider = this.props.ssoContext.getProvider();
+    const isProviderAvailable = SsoProviders.find(provider => ssoProvider === provider.id);
+    return isProviderAvailable;
+  }
+
+  /**
+   * Returns the provider information of the current SSO provider configured.
+   * @return {object}
+   */
+  get ssoProviderData() {
+    const ssoProvider = this.props.ssoContext.getProvider();
+    if (!ssoProvider) {
+      return null;
+    }
+    return SsoProviders.find(provider => provider.id === ssoProvider);
+  }
+
   render() {
+    const ssoProviderData = this.ssoProviderData;
     return (
       <div className="quickaccess-login">
         <div className="login-form">
+          {!this.state.displaySso && this.state.isReady &&
           <form onSubmit={this.handleFormSubmit}>
             <div className="form-container">
               <div className="input text required">
@@ -94,12 +183,11 @@ class LoginPage extends React.Component {
                 <label htmlFor="passphrase"><Trans>Passphrase</Trans></label>
                 <div className="password with-token">
                   <Password
-                    name="passphrase" placeholder={this.props.t('Passphrase')}
+                    name="passphrase"
+                    placeholder={this.props.t('Passphrase')}
                     id="passphrase"
                     autoComplete="off"
                     inputRef={this.passphraseInputRef}
-                    value={this.state.passphrase}
-                    onChange={this.handleInputChange}
                     preview={true}
                     securityToken={this.props.context.userSettings.getSecurityToken()}
                     disabled={this.state.processing}/>
@@ -122,8 +210,37 @@ class LoginPage extends React.Component {
                   <Icon name="spinner"/>
                 }
               </button>
+              {this.state.isSsoAvailable &&
+                <a className="show-sso-form-button" onClick={this.handleSwitchToSso}>
+                  <Trans>Sign in with Single Sign-On.</Trans>
+                </a>
+              }
             </div>
           </form>
+          }
+          {this.state.displaySso && this.state.isReady &&
+          <>
+            <div className="form-actions sso-login-form">
+              {this.isSsoLocalKitPresent &&
+                <a className={`button sso-login-button ${this.state.processing ? "disabled" : ""} ${ssoProviderData.id}`} onClick={this.handleSignInWithSso} disabled={this.state.processing} >
+                  <span className="provider-logo">
+                    {ssoProviderData.icon}
+                  </span>
+                  {this.props.t(`Sign in with {{providerName}}`, {providerName: ssoProviderData.name})}
+                </a>
+              }
+              <a className="show-passphrase-form-button" onClick={this.handleSwitchToPassphrase}>
+                <Trans>Sign in with my passphrase.</Trans>
+              </a>
+              {this.state.ssoError &&
+                <div className="error-message">
+                  <Trans>An error occured during the sign-in via SSO.</Trans><br/>
+                  {this.state.ssoError}
+                </div>
+              }
+            </div>
+          </>
+          }
         </div>
       </div>
     );
@@ -132,6 +249,7 @@ class LoginPage extends React.Component {
 
 LoginPage.propTypes = {
   context: PropTypes.any, // The application context
+  ssoContext: PropTypes.object, // The SSO context
   canRememberMe: PropTypes.bool, // True if the remember me flag must be displayed
   loginSuccessCallback: PropTypes.func,
   mfaRequiredCallback: PropTypes.func,
@@ -142,4 +260,4 @@ LoginPage.propTypes = {
   t: PropTypes.func, // The translation function
 };
 
-export default withAppContext(withRouter(withTranslation('common')(LoginPage)));
+export default withAppContext(withRouter(withSso(withTranslation('common')(LoginPage))));

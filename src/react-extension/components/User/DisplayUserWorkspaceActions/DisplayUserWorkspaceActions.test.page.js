@@ -16,7 +16,7 @@
 
 import {fireEvent, render, waitFor} from "@testing-library/react";
 import React from "react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import {BrowserRouter as Router} from "react-router-dom";
 import DisplayUserWorkspaceActions from "./DisplayUserWorkspaceActions";
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
@@ -46,55 +46,55 @@ export default class DisplayUserWorkspaceActionsPage {
    * Returns true if one can edit an user
    */
   get canEdit() {
-    const element = this._page.container.querySelectorAll('li a')[0];
-    return Boolean(element) && !element.classList.contains('disabled');
+    const element = this._page.container.querySelectorAll('li button')[0];
+    return Boolean(element) && !element.hasAttribute('disabled');
   }
 
   /**
    * Returns true if one can delete an user
    */
   get canDelete() {
-    const element = this._page.container.querySelectorAll('li a')[1];
-    return Boolean(element) && !element.classList.contains('disabled');
+    const element = this._page.container.querySelectorAll('li button')[1];
+    return Boolean(element) && !element.hasAttribute('disabled');
   }
 
   /**
    * Returns true if one can copy permalink an user
    */
   get canCopyPermalink() {
-    const element = this._page.container.querySelectorAll('li a')[2];
-    return Boolean(element) && !element.classList.contains('disabled');
+    const element = this._page.container.querySelectorAll('li button')[2];
+    return Boolean(element) && !element.hasAttribute('disabled');
   }
 
   /**
    * Returns true if one can resend an invite to a user
    */
   get canResendInvite() {
-    const element = this._page.container.querySelectorAll('li a')[3];
-    return Boolean(element) && !element.classList.contains('disabled');
+    const element = this._page.container.querySelectorAll('li button')[3];
+    return Boolean(element) && !element.hasAttribute('disabled');
   }
 
   /**
    * Returns true if one can disable user MFA
    */
   get canDisableMFA() {
-    const element = this._page.container.querySelectorAll('li a')[4];
-    return Boolean(element) && !element.classList.contains('disabled');
+    const element = this._page.container.querySelectorAll('li button')[4];
+    return Boolean(element) && !element.hasAttribute('disabled');
   }
 
   /**
    * Returns true if one can review account recovery of a user
    */
   get canReviewAccountRecovery() {
-    const element = this._page.container.querySelectorAll('li a')[5];
-    return Boolean(element) && !element.classList.contains('disabled');
+    const element = this._page.container.querySelectorAll('li button')[5];
+    return Boolean(element) && !element.hasAttribute('disabled');
   }
 
   /**
    * Asks for more actions through the dropdown
    */
   async moreActions() {
-    const element = this._page.container.querySelector('.dropdown a');
+    const element = this._page.container.querySelector('.dropdown button');
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});

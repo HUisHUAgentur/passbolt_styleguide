@@ -16,7 +16,7 @@
 
 import {fireEvent, render, waitFor} from "@testing-library/react";
 import React from "react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import {BrowserRouter as Router} from "react-router-dom";
 import DisplayUsers from "./DisplayUsers";
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
@@ -91,7 +91,7 @@ export default class DisplayUsersPage {
    * Sort the users by their full name
    */
   async sortByAttentionRequired() {
-    const element = this._page.container.querySelectorAll('thead th a')[0];
+    const element = this._page.container.querySelectorAll('thead th button')[0];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -101,7 +101,7 @@ export default class DisplayUsersPage {
    * Sort the users by their full name
    */
   async sortByFullname() {
-    const element = this._page.container.querySelectorAll('thead th a')[1];
+    const element = this._page.container.querySelectorAll('thead th button')[1];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -111,7 +111,7 @@ export default class DisplayUsersPage {
    * Sort the users by their username
    */
   async sortByUsername() {
-    const element = this._page.container.querySelectorAll('thead th a')[2];
+    const element = this._page.container.querySelectorAll('thead th button')[2];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -121,7 +121,7 @@ export default class DisplayUsersPage {
    * Sort the users by role
    */
   async sortByRole() {
-    const element = this._page.container.querySelectorAll('thead th a')[3];
+    const element = this._page.container.querySelectorAll('thead th button')[3];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -131,7 +131,7 @@ export default class DisplayUsersPage {
    * Sort the users by their last date of modification
    */
   async sortByModified() {
-    const element = this._page.container.querySelectorAll('thead th a')[4];
+    const element = this._page.container.querySelectorAll('thead th button')[4];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -141,7 +141,7 @@ export default class DisplayUsersPage {
    * Sort the users by their last date of login
    */
   async sortByLastLoggedIn() {
-    const element = this._page.container.querySelectorAll('thead th a')[5];
+    const element = this._page.container.querySelectorAll('thead th button')[5];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -151,7 +151,7 @@ export default class DisplayUsersPage {
    * Sort the users by their mfa enable status
    */
   async sortByMFAEnabled() {
-    const element = this._page.container.querySelectorAll('thead th a')[6];
+    const element = this._page.container.querySelectorAll('thead th button')[6];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});
@@ -161,7 +161,7 @@ export default class DisplayUsersPage {
    * Sort the users by their account recovery status
    */
   async sortByAccountRecoveryStatus() {
-    const element = this._page.container.querySelectorAll('thead th a')[7];
+    const element = this._page.container.querySelectorAll('thead th button')[7];
     const leftClick = {button: 0};
     fireEvent.click(element, leftClick);
     await waitFor(() => {});

@@ -1,9 +1,24 @@
+/**
+ * Passbolt ~ Open source password manager for teams
+ * Copyright (c) 2021 Passbolt SA (https://www.passbolt.com)
+ *
+ * Licensed under GNU Affero General Public License version 3 of the or any later version.
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @copyright     Copyright (c) 2021 Passbolt SA (https://www.passbolt.com)
+ * @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
+ * @link          https://www.passbolt.com Passbolt(tm)
+ * @since         3.2.0
+ */
+
 import React from "react";
-import AppContext from "./AppContext";
+import AppContext from "../../shared/context/AppContext/AppContext";
 import PropTypes from "prop-types";
 import SiteSettings from "../../shared/lib/Settings/SiteSettings";
 import ResourceTypesSettings from "../../shared/lib/Settings/ResourceTypesSettings";
 import UserSettings from "../../shared/lib/Settings/UserSettings";
+import RbacsCollection from "../../shared/models/entity/rbac/rbacsCollection";
 
 /**
  * The ExtApp context provider
@@ -45,7 +60,6 @@ class ExtAppContextProvider extends React.Component {
 
   initEventHandlers() {
     this.props.storage.onChanged.addListener(this.handleStorageChange);
-    this.props.port.on('passbolt.react-app.is-ready', this.handleIsReadyEvent);
   }
 
   getDefaultState(props) {
@@ -60,10 +74,13 @@ class ExtAppContextProvider extends React.Component {
       users: null, // The current list of all users
       groups: null,
 
+      loggedInUser: null,
+      rbacs: null,
       siteSettings: null,
       userSettings: null,
       extensionVersion: null, // The extension version
       locale: null, // The locale
+      isSessionLogoutByUser: false, // Is the session logout by the user
 
       setContext: context => {
         this.setState(context);
@@ -140,7 +157,9 @@ class ExtAppContextProvider extends React.Component {
 
       // Navigation
       onLogoutRequested: () => this.onLogoutRequested(),
-      onCheckIsAuthenticatedRequested: () => this.onCheckIsAuthenticatedRequested(),
+
+      // Expired session
+      onExpiredSession: this.onExpiredSession.bind(this),
 
       // Subscription
       onGetSubscriptionKeyRequested: () => this.onGetSubscriptionKeyRequested(),
@@ -158,8 +177,16 @@ class ExtAppContextProvider extends React.Component {
     }
   }
 
+  /**
+   * Check if the application is ready to render with minimal data.
+   * @returns {boolean}
+   */
   isReady() {
-    return this.state.userSettings !== null && this.state.siteSettings !== null && this.state.locale !== null;
+    return this.state.loggedInUser !== null
+      && this.state.rbacs !== null
+      && this.state.userSettings !== null
+      && this.state.siteSettings !== null
+      && this.state.locale !== null;
   }
 
   /*
@@ -171,8 +198,11 @@ class ExtAppContextProvider extends React.Component {
    * Get the current user info from background page and set it in the state
    */
   async getLoggedInUser() {
+    const canIUseRbac = this.state.siteSettings.canIUse('rbacs');
     const loggedInUser = await this.props.port.request("passbolt.users.find-logged-in-user");
-    this.setState({loggedInUser});
+    const rbacsDto = canIUseRbac ? await this.props.port.request("passbolt.rbacs.find-me") : [];
+    const rbacs = new RbacsCollection(rbacsDto);
+    this.setState({loggedInUser, rbacs});
   }
 
   /**
@@ -325,14 +355,22 @@ class ExtAppContextProvider extends React.Component {
    * Listen when the user wants to logout.
    */
   onLogoutRequested() {
-    this.props.port.request('passbolt.auth.navigate-to-logout');
+    const requestLogout = () => this.props.port.request('passbolt.auth.logout', true);
+    // Indicate that the session is logout by the user before requesting a logout
+    this.setState({isSessionLogoutByUser: true}, requestLogout);
   }
 
   /**
-   * Whenever the user authentication status must be checked
+   * Listen when the user session is expired.
+   * @param {function} callback The callback to execute
    */
-  async onCheckIsAuthenticatedRequested() {
-    return await this.props.port.request("passbolt.auth.is-authenticated", {requestApi: false});
+  onExpiredSession(callback) {
+    const displayExpiredSession = () => {
+      if (!this.state.isSessionLogoutByUser) {
+        callback();
+      }
+    };
+    this.props.port.on('passbolt.auth.after-logout', displayExpiredSession);
   }
 
   /**
@@ -355,10 +393,9 @@ class ExtAppContextProvider extends React.Component {
    * @returns {JSX}
    */
   render() {
-    const isReady = this.isReady();
     return (
       <AppContext.Provider value={this.state}>
-        {isReady && this.props.children}
+        {this.isReady() && this.props.children}
       </AppContext.Provider>
     );
   }

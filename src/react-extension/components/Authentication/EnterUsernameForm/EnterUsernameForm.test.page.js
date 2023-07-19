@@ -84,6 +84,13 @@ export default class EnterUsernameFormPage {
   }
 
   /**
+   * Returns the secondary action button element
+   */
+  get secondaryActionButton() {
+    return this._page.container.querySelector('.form-actions button.link');
+  }
+
+  /**
    * Returns true if the page object exists in the container
    */
   exists() {

@@ -1,10 +1,12 @@
 import React from "react";
 import {Link, withRouter} from "react-router-dom";
-import {withAppContext} from "../../contexts/AppContext";
 import canSuggestUrl from "./canSuggestUrl";
 import PropTypes from "prop-types";
 import {Trans, withTranslation} from "react-i18next";
 import Icon from "../../../shared/components/Icons/Icon";
+import {withRbac} from "../../../shared/context/Rbac/RbacContext";
+import {uiActions} from "../../../shared/services/rbacs/uiActionEnumeration";
+import {withAppContext} from "../../../shared/context/AppContext/AppContext";
 
 const SUGGESTED_RESOURCES_LIMIT = 20;
 const BROWSED_RESOURCES_LIMIT = 500;
@@ -193,7 +195,7 @@ class HomePage extends React.Component {
     const showSuggestedSection = !this.props.context.search.length;
     const showBrowsedResourcesSection = this.props.context.search.length > 0;
     const showFiltersSection = !this.props.context.search.length;
-    const canUseTag = this.props.context.siteSettings.canIUse('tags');
+    const canUseTag = this.props.context.siteSettings.canIUse('tags') && this.props.rbacContext.canIUseUiAction(uiActions.TAGS_USE);
     let browsedResources, suggestedResources;
 
     if (isReady) {
@@ -228,12 +230,14 @@ class HomePage extends React.Component {
                 {(isReady && suggestedResources.length > 0) &&
                   suggestedResources.map(resource => (
                     <li className="suggested-resource-entry" key={resource.id}>
-                      <a role="button" className="resource-details" onClick={() => this.handleUseOnThisTabClick(resource)}>
-                        <span className="title">{resource.name}</span>
-                        <span className="username"> {resource.username ? `(${resource.username})` : ""}</span>
+                      <button type="button" className="resource-details link" onClick={() => this.handleUseOnThisTabClick(resource)}>
+                        <div className="inline-resource-name">
+                          <span className="title">{resource.name}</span>
+                          <span className="username"> {resource.username ? `(${resource.username})` : ""}</span>
+                        </div>
                         <span className="url">{resource.uri}</span>
-                      </a>
-                      <Link className="chevron-right-wrapper" to={`/data/quickaccess/resources/view/${resource.id}`}>
+                      </button>
+                      <Link className="chevron-right-wrapper" to={`/webAccessibleResources/quickaccess/resources/view/${resource.id}`}>
                         <Icon name="chevron-right"/>
                       </Link>
                     </li>
@@ -262,7 +266,7 @@ class HomePage extends React.Component {
                   {(isReady && browsedResources.length > 0) &&
                     browsedResources.map(resource => (
                       <li className="browse-resource-entry" key={resource.id}>
-                        <Link to={`/data/quickaccess/resources/view/${resource.id}`}>
+                        <Link to={`/webAccessibleResources/quickaccess/resources/view/${resource.id}`}>
                           <div className="inline-resource-entry">
                             <div className='inline-resource-name'>
                               <span className="title">{resource.name}</span>
@@ -285,14 +289,14 @@ class HomePage extends React.Component {
               </div>
               <ul className="list-items">
                 <li className="filter-entry">
-                  <Link to={"/data/quickaccess/more-filters"}>
+                  <Link to={"/webAccessibleResources/quickaccess/more-filters"}>
                     <Icon name="filter"/>
                     <span className="filter-title"><Trans>Filters</Trans></span>
                     <Icon name="chevron-right"/>
                   </Link>
                 </li>
                 <li className="filter-entry">
-                  <Link to={"/data/quickaccess/resources/group"}>
+                  <Link to={"/webAccessibleResources/quickaccess/resources/group"}>
                     <Icon name="users"/>
                     <span className="filter-title"><Trans>Groups</Trans></span>
                     <Icon name="chevron-right"/>
@@ -300,7 +304,7 @@ class HomePage extends React.Component {
                 </li>
                 {canUseTag &&
                   <li className="filter-entry">
-                    <Link to={"/data/quickaccess/resources/tag"}>
+                    <Link to={"/webAccessibleResources/quickaccess/resources/tag"}>
                       <Icon name="tag"/>
                       <span className="filter-title"><Trans>Tags</Trans></span>
                       <Icon name="chevron-right"/>
@@ -312,7 +316,7 @@ class HomePage extends React.Component {
           }
         </div>
         <div className="submit-wrapper button-after-list input">
-          <Link to={`/data/quickaccess/resources/create`} id="popupAction" className="button primary big full-width" role="button">
+          <Link to={`/webAccessibleResources/quickaccess/resources/create`} id="popupAction" className="button primary big full-width" role="button">
             <Trans>Create new</Trans>
           </Link>
           {this.state.useOnThisTabError &&
@@ -326,7 +330,8 @@ class HomePage extends React.Component {
 
 HomePage.propTypes = {
   context: PropTypes.any, // The application context
+  rbacContext: PropTypes.any, // The role based access control context
   t: PropTypes.func, // The translation function
 };
 
-export default withAppContext(withRouter(withTranslation('common')(HomePage)));
+export default withAppContext(withRbac(withRouter(withTranslation('common')(HomePage))));

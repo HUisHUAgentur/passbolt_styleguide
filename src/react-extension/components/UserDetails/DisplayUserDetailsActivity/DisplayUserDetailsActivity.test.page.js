@@ -13,7 +13,7 @@
  */
 
 import {render, fireEvent, waitFor} from "@testing-library/react";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import React from "react";
 import DisplayUserDetailsActivity from "./DisplayUserDetailsActivity";
 import {BrowserRouter as Router} from 'react-router-dom';
@@ -49,7 +49,7 @@ export default class DisplayUserDetailsActivityPage {
    * @returns {{select: select}}
    */
   get title() {
-    return this._page.container.querySelector(".accordion-header h4 a");
+    return this._page.container.querySelector(".accordion-header h4 button");
   }
 
   /**
@@ -70,7 +70,7 @@ export default class DisplayUserDetailsActivityPage {
   }
 
   get moreButton() {
-    return this._page.container.querySelector('.accordion-content .button.action-logs-load-more');
+    return this._page.container.querySelector('.accordion-content button.action-logs-load-more');
   }
 
   get progressionText() {

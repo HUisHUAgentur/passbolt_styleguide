@@ -13,7 +13,7 @@
  */
 import React from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "../AppContext";
+import {withAppContext} from "../../../shared/context/AppContext/AppContext";
 import {BROWSER_NAMES, detectBrowserName} from "../../../shared/lib/Browser/detectBrowserName";
 
 // The authentication setup workflow states.
@@ -29,6 +29,8 @@ export const AuthenticationSetupWorkflowStates = {
   COMPLETING_SETUP: 'Completing setup',
   UNEXPECTED_ERROR: 'Unexpected Error',
   VALIDATE_PASSPHRASE: 'Validate passphrase',
+  CONFIGURING_SSO: "Configuring SSO",
+  RETRY_SETUP: 'Retry setup',
 };
 
 /**
@@ -77,6 +79,7 @@ export class AuthenticationSetupContextProvider extends React.Component {
   constructor(props) {
     super(props);
     this.state = this.defaultState;
+    this.bindCallbacks();
   }
 
   /**
@@ -105,10 +108,26 @@ export class AuthenticationSetupContextProvider extends React.Component {
   }
 
   /**
+   * Binds the callbacks
+   */
+  bindCallbacks() {
+    this.retrySetup = this.retrySetup.bind(this);
+  }
+
+  /**
    * Whenever the component is initialized
    */
   componentDidMount() {
     this.initialize();
+    // For MV3 to avoid unexpected error after service worker has been shutdown
+    this.props.context.port._port.onDisconnect.addListener(this.retrySetup);
+  }
+
+  /**
+   * Whenever the component is unmount
+   */
+  componentWillUnmount() {
+    this.props.context.port._port.onDisconnect.removeListener(this.retrySetup);
   }
 
   /**
@@ -125,6 +144,13 @@ export class AuthenticationSetupContextProvider extends React.Component {
       state = AuthenticationSetupWorkflowStates.INTRODUCE_EXTENSION;
     }
     await this.setState({state});
+  }
+
+  /**
+   * Force retry setup
+   */
+  retrySetup() {
+    this.setState({state: AuthenticationSetupWorkflowStates.RETRY_SETUP});
   }
 
   /**

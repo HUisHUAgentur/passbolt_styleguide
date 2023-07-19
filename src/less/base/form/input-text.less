@@ -9,6 +9,7 @@
 */
 input[type=number],
 input[type=text],
+input[type=date],
 input[type=email],
 input[type=password],
 input[type=search],
@@ -16,7 +17,7 @@ textarea {
     font-size: 1.5rem;
     font-weight: 400;
     line-height: 2rem;
-    color: @default-text-color;
+    color: @input-text-color;
     background: @input-background;
     width: 100%;
     max-width: 64rem;
@@ -32,17 +33,23 @@ textarea {
     // Fields hover
     &:hover {
       box-shadow: inset .1rem .1rem 0 rgba(255, 255, 255, @shadow-opacity-hover-white), .1rem .1rem 0 rgba(0, 0, 0, @shadow-opacity-hover-black), inset 0 0 0 1px @input-border;
+      background: @input-hover-background;
+      color: @input-hover-text-color;
     }
 
     // Fields focus
     &:focus {
       box-shadow: 0 0 .4rem @shadow-focus-color, inset 0 0 0 .1rem @input-focus-border;
-      outline: 0;
+      outline: @outline-default-border;
+      background: @input-focus-background;
+      color: @input-focus-text-color;
     }
 
     // Fields pressed
     &:active {
       box-shadow: inset -.1rem -.1rem 0 rgba(255, 255, 255, @shadow-opacity-active-white), inset .1rem .1rem 0 rgba(0, 0, 0, @shadow-opacity-active-black), inset 0 0 0 1px @input-border;
+      background: @input-active-background;
+      color: @input-active-text-color;
     }
 
     // Disabled fields.
@@ -50,11 +57,19 @@ textarea {
       cursor: default;
       box-shadow: inset 0 0 0 .1rem @input-border;
       opacity: .5;
+      outline: 0;
+      background: @input-disabled-background;
+      color: @input-disabled-text-color;
     }
 
     // Placeholder
     &:placeholder-shown {
       text-overflow: ellipsis;
+    }
+
+    // Fields pressed
+    &.full-width {
+      max-width: none;
     }
 }
 
@@ -82,26 +97,35 @@ input[type=number] {
   &.in-field {
     background: @input-infield-background;
     box-shadow: inset 0 0 0 .1rem @input-infield-border;
+    height: 3rem; // Fix the height of the input on firefox
     margin-bottom: 0;
 
     // Fields hover
     &:hover {
       box-shadow: inset .1rem .1rem 0 rgba(255, 255, 255, @shadow-opacity-hover-white), .1rem .1rem 0 rgba(0, 0, 0, @shadow-opacity-hover-black), inset 0 0 0 1px @input-infield-border;
+      background: @input-hover-background;
+      color: @input-hover-text-color;
     }
 
     // Fields focus
     &:focus {
       box-shadow: 0 0 .4rem @shadow-focus-color, inset 0 0 0 .1rem @input-focus-border;
+      background: @input-focus-background;
+      color: @input-focus-text-color;
     }
 
     // Fields pressed
     &:active {
       box-shadow: inset -.1rem -.1rem 0 rgba(255, 255, 255, @shadow-opacity-active-white), inset .1rem .1rem 0 rgba(0, 0, 0, @shadow-opacity-active-black), inset 0 0 0 1px @input-infield-border;
+      background: @input-active-background;
+      color: @input-active-text-color;
     }
 
     // Disabled fields.
     &:disabled {
       box-shadow: inset 0 0 0 .1rem @input-infield-border;
+      background: @input-disabled-background;
+      color: @input-disabled-text-color;
     }
   }
 }

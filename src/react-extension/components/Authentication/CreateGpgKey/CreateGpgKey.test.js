@@ -20,15 +20,19 @@ import each from "jest-each";
 import {CreateGpgKeyVariation} from "./CreateGpgKey";
 import {defaultProps} from "./CreateGpgKey.test.data";
 import CreateGpgKeyPage from "./CreateGpgKey.test.page";
-import PwnedPasswords from "../../../../shared/lib/Secret/PwnedPasswords";
 
 jest.mock("../../../../shared/lib/Secret/PwnedPasswords");
 
 beforeEach(() => {
   jest.resetModules();
+  jest.useFakeTimers();
   jest.clearAllMocks();
-  PwnedPasswords.pwnedPasswords.mockResolvedValue(false);
 });
+
+afterEach(() => {
+  jest.clearAllTimers();
+});
+
 
 describe("CreateGpgKey", () => {
   each([
@@ -71,9 +75,9 @@ describe("CreateGpgKey", () => {
       const page = new CreateGpgKeyPage(props);
 
       expect.assertions(1);
-      const veryWeakPassphrase = 'blabla';
+      const veryWeakPassphrase = 'blablablabla';
       await page.fill(veryWeakPassphrase);
-      await waitFor(() => expect(page.isVeryWeakPassphrase).toBeTruthy());
+      expect(page.isVeryWeakPassphrase).toBeTruthy();
     });
 
     it(`As AN I should see the passphrase weak strength updated on change, scenario: ${JSON.stringify(_props)}`, async() => {
@@ -211,6 +215,27 @@ describe("CreateGpgKey", () => {
 
       expect.assertions(1);
       expect(page.title).toBe("Welcome to Passbolt, please select a passphrase!");
+    });
+
+    it('As AN I should be inform about ExternalServiceUnavailableError for powned password service', async() => {
+      const props = defaultProps({displayAs: CreateGpgKeyVariation.SETUP});
+      jest.spyOn(props.context.port, "request").mockImplementationOnce(() => Promise.reject());
+      const page = new CreateGpgKeyPage(props);
+      expect.assertions(2);
+      await page.fill("Service is unavailable");
+      expect(page.notInDictionaryHint.classList.contains("unavailable")).toBeTruthy();
+      expect(page.tootltip.textContent).toBe("The pwnedpasswords service is unavailable, your passphrase might be part of an exposed data breach");
+    });
+
+    it("As AN I should see a complexity as Quality if the passphrase is empty", async() => {
+      const props = defaultProps({displayAs: CreateGpgKeyVariation.SETUP});
+      const page = new CreateGpgKeyPage(props);
+      expect.assertions(2);
+
+      await page.fill("");
+
+      expect(page.isEmptyPassphrase).toBeTruthy();
+      expect(page.notInDictionaryHint.classList.length).toBe(0);
     });
   });
 });

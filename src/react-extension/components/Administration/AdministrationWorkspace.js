@@ -12,7 +12,7 @@
  */
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../contexts/AppContext";
+import {withAppContext} from "../../../shared/context/AppContext/AppContext";
 import {
   AdministrationWorkspaceMenuTypes,
   withAdministrationWorkspace
@@ -34,6 +34,12 @@ import DisplayInternationalizationAdministration
   from "./DisplayInternationalizationAdministration/DisplayInternationalizationAdministration";
 import ManageAccountRecoveryAdministrationSettings
   from "./ManageAccountRecoveryAdministrationSettings/ManageAccountRecoveryAdministrationSettings";
+import ManageSmtpAdministrationSettings
+  from "./ManageSmtpAdministrationSettings/ManageSmtpAdministrationSettings.js";
+import DisplaySelfRegistrationAdministration from "./DisplaySelfRegistrationAdministration/DisplaySelfRegistrationAdministration";
+import ManageSsoSettings from "./ManageSsoSettings/ManageSsoSettings";
+import DisplayMfaPolicyAdministration from "./DisplayMfaPolicyAdministration/DisplayMfaPolicyAdministration";
+import DisplayRbacAdministration from "./DisplayRbacAdministration/DisplayRbacAdministration";
 
 class AdministrationWorkspace extends Component {
   /**
@@ -42,6 +48,14 @@ class AdministrationWorkspace extends Component {
    */
   isMfaSelected() {
     return AdministrationWorkspaceMenuTypes.MFA === this.props.administrationWorkspaceContext.selectedAdministration;
+  }
+
+  /**
+   * If MFA policy menu is selected
+   * @returns {boolean}
+   */
+  isMfaPolicySelected() {
+    return AdministrationWorkspaceMenuTypes.MFA_POLICY === this.props.administrationWorkspaceContext.selectedAdministration;
   }
 
   /**
@@ -84,6 +98,38 @@ class AdministrationWorkspace extends Component {
     return AdministrationWorkspaceMenuTypes.ACCOUNT_RECOVERY === this.props.administrationWorkspaceContext.selectedAdministration;
   }
 
+  /**
+   * If SMTP settings menu is selected
+   * @returns {boolean}
+   */
+  isSmtpSettingsSelected() {
+    return AdministrationWorkspaceMenuTypes.SMTP_SETTINGS === this.props.administrationWorkspaceContext.selectedAdministration;
+  }
+
+  /**
+   * If Self registration settings menu is selected
+   * @returns {boolean}
+   */
+  isSelfRegistrationSelected() {
+    return AdministrationWorkspaceMenuTypes.SELF_REGISTRATION === this.props.administrationWorkspaceContext.selectedAdministration;
+  }
+
+  /**
+   * If SSO menu is selected
+   * @returns {boolean}
+   */
+  isSsoSelected() {
+    return AdministrationWorkspaceMenuTypes.SSO === this.props.administrationWorkspaceContext.selectedAdministration;
+  }
+
+  /**
+   * If RBAC menu is selected
+   * @returns {boolean}
+   */
+  isRbacSelected() {
+    return AdministrationWorkspaceMenuTypes.RBAC === this.props.administrationWorkspaceContext.selectedAdministration;
+  }
+
   render() {
     const AdministrationWorkspaceAction = this.props.administrationWorkspaceContext.administrationWorkspaceAction;
     return (
@@ -113,6 +159,9 @@ class AdministrationWorkspace extends Component {
                   {this.isMfaSelected() &&
                   <DisplayMfaAdministration/>
                   }
+                  {this.isMfaPolicySelected() &&
+                  <DisplayMfaPolicyAdministration/>
+                  }
                   {this.isUserDirectorySelected() &&
                   <DisplayUserDirectoryAdministration/>
                   }
@@ -127,6 +176,18 @@ class AdministrationWorkspace extends Component {
                   }
                   {this.isAccountRecoverySelected() &&
                   <ManageAccountRecoveryAdministrationSettings/>
+                  }
+                  {this.isSmtpSettingsSelected() &&
+                  <ManageSmtpAdministrationSettings/>
+                  }
+                  {this.isSelfRegistrationSelected() &&
+                  <DisplaySelfRegistrationAdministration/>
+                  }
+                  {this.isSsoSelected() &&
+                  <ManageSsoSettings/>
+                  }
+                  {this.isRbacSelected() &&
+                  <DisplayRbacAdministration/>
                   }
                 </div>
               </div>

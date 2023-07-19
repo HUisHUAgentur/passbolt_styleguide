@@ -13,8 +13,7 @@
  */
 import React, {Component} from "react";
 import PropTypes from "prop-types";
-import XRegExp from "xregexp";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import DialogWrapper from "../../Common/Dialog/DialogWrapper/DialogWrapper";
 import NotifyError from "../../Common/Error/NotifyError/NotifyError";
 import FormSubmitButton from "../../Common/Inputs/FormSubmitButton/FormSubmitButton";
@@ -22,6 +21,10 @@ import FormCancelButton from "../../Common/Inputs/FormSubmitButton/FormCancelBut
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import {withDialog} from "../../../contexts/DialogContext";
 import {Trans, withTranslation} from "react-i18next";
+import {maxSizeValidation} from "../../../lib/Error/InputValidator";
+import Icon from "../../../../shared/components/Icons/Icon";
+import {USER_INPUT_MAX_LENGTH} from "../../../../shared/constants/inputs.const";
+import AppEmailValidatorService from "../../../../shared/services/validator/AppEmailValidatorService";
 
 class CreateUser extends Component {
   /**
@@ -59,10 +62,13 @@ class CreateUser extends Component {
       // Fields and errors
       first_name: "",
       first_nameError: null,
+      first_nameWarning: "",
       last_name: "",
       last_nameError: null,
+      last_nameWarning: "",
       username: "",
       usernameError: null,
+      usernameWarning: "",
       is_admin: false,
       hasAlreadyBeenValidated: false // True if the form has already been submitted once
     };
@@ -131,6 +137,9 @@ class CreateUser extends Component {
     if (this.state.hasAlreadyBeenValidated) {
       const state = this.validateFirstNameInput();
       this.setState(state);
+    } else {
+      const first_nameWarning = maxSizeValidation(this.state.first_name, USER_INPUT_MAX_LENGTH, this.translate);
+      this.setState({first_nameWarning});
     }
   }
 
@@ -141,6 +150,9 @@ class CreateUser extends Component {
     if (this.state.hasAlreadyBeenValidated) {
       const state = this.validateLastNameInput();
       this.setState(state);
+    } else {
+      const last_nameWarning = maxSizeValidation(this.state.last_name, USER_INPUT_MAX_LENGTH, this.translate);
+      this.setState({last_nameWarning});
     }
   }
 
@@ -151,6 +163,9 @@ class CreateUser extends Component {
     if (this.state.hasAlreadyBeenValidated) {
       const state = this.validateUsernameInput();
       this.setState(state);
+    } else {
+      const usernameWarning = maxSizeValidation(this.state.username, USER_INPUT_MAX_LENGTH, this.translate);
+      this.setState({usernameWarning});
     }
   }
 
@@ -319,21 +334,10 @@ class CreateUser extends Component {
     const username = this.state.username.trim();
     if (!username.length) {
       usernameError = this.translate("A username is required.");
-    } else if (!this.isEmail(username)) {
+    } else if (!AppEmailValidatorService.validate(username, this.props.context.siteSettings)) {
       usernameError = this.translate("The username should be a valid username address.");
     }
     return this.setState({usernameError});
-  }
-
-  /**
-   * Check that a username is a valid email
-   * @param {string }username the username to test
-   */
-  isEmail(username) {
-    const hostnameRegexp = "(?:[_\\p{L}0-9][-_\\p{L}0-9]*\\.)*(?:[\\p{L}0-9][-\\p{L}0-9]{0,62})\\.(?:(?:[a-z]{2}\\.)?[a-z]{2,})";
-    const emailRegexp = `^[\\p{L}0-9!#$%&'*+\/=?^_\`{|}~-]+(?:\\.[\\p{L}0-9!#$%&'*+\/=?^_\`{|}~-]+)*@${hostnameRegexp}$`;
-    const xregexp = XRegExp(emailRegexp);
-    return xregexp.test(username);
   }
 
   /**
@@ -371,22 +375,33 @@ class CreateUser extends Component {
         <form className="user-create-form" onSubmit={this.handleFormSubmit} noValidate>
           <div className="form-content">
             <div className={`input text required ${this.state.first_nameError ? "error" : ""} ${this.hasAllInputDisabled() ? 'disabled' : ''}`}>
-              <label htmlFor="user-first-name-input"><Trans>First name</Trans></label>
+              <label htmlFor="user-first-name-input"><Trans>First name</Trans>{this.state.first_nameWarning &&
+                  <Icon name="exclamation"/>
+              }</label>
               <input id="user-first-name-input" name="first_name"
                 ref={this.firstNameRef}
                 type="text" value={this.state.first_name} placeholder={this.translate("First name")}
                 required="required" disabled={this.hasAllInputDisabled()}
+                maxLength="128"
                 onKeyUp={this.handleFirstNameInputKeyUp} onChange={this.handleInputChange}
                 autoComplete='off' autoFocus={true}
               />
               {this.state.first_nameError &&
               <div className="first_name error-message">{this.state.first_nameError}</div>
               }
+              {this.state.first_nameWarning && (
+                <div className="firstname warning-message">
+                  <strong><Trans>Warning:</Trans></strong> {this.state.first_nameWarning}
+                </div>
+              )}
             </div>
             <div className={`input text required ${this.state.last_nameError ? "error" : ""} ${this.hasAllInputDisabled() ? 'disabled' : ''}`}>
-              <label htmlFor="user-last-name-input"><Trans>Last name</Trans></label>
+              <label htmlFor="user-last-name-input"><Trans>Last name</Trans>{this.state.last_nameWarning &&
+                  <Icon name="exclamation"/>
+              }</label>
               <input id="user-last-name-input" name="last_name"
                 ref={this.lastNameRef}
+                maxLength="128"
                 type="text" value={this.state.last_name} placeholder={this.translate("Last name")}
                 required="required" disabled={this.hasAllInputDisabled()}
                 onKeyUp={this.handleLastNameInputOnKeyUp} onChange={this.handleInputChange}
@@ -395,10 +410,18 @@ class CreateUser extends Component {
               {this.state.last_nameError &&
               <div className="last_name error-message">{this.state.last_nameError}</div>
               }
+              {this.state.last_nameWarning && (
+                <div className="lastname warning-message">
+                  <strong><Trans>Warning:</Trans></strong> {this.state.last_nameWarning}
+                </div>
+              )}
             </div>
             <div className={`input text required ${this.state.usernameError ? "error" : ""} ${this.hasAllInputDisabled() ? 'disabled' : ''}`}>
-              <label htmlFor="user-username-input"><Trans>Username / Email</Trans></label>
+              <label htmlFor="user-username-input"><Trans>Username / Email</Trans>{this.state.usernameWarning &&
+                  <Icon name="exclamation"/>
+              }</label>
               <input id="user-username-input" name="username"
+                maxLength="128"
                 ref={this.usernameRef} type="text" value={this.state.username} placeholder={this.translate("Email")}
                 required="required" disabled={this.hasAllInputDisabled()}
                 onKeyUp={this.handleUsernameInputOnKeyUp} onChange={this.handleInputChange}
@@ -407,6 +430,11 @@ class CreateUser extends Component {
               {this.state.usernameError &&
               <div className="username error-message">{this.state.usernameError}</div>
               }
+              {this.state.usernameWarning && (
+                <div className="username warning-message">
+                  <strong><Trans>Warning:</Trans></strong> {this.state.usernameWarning}
+                </div>
+              )}
             </div>
             <div className={`input checkbox-wrapper ${this.hasAllInputDisabled() ? 'disabled' : ''}`}>
               <label htmlFor="is_admin_checkbox"><Trans>Role</Trans></label>

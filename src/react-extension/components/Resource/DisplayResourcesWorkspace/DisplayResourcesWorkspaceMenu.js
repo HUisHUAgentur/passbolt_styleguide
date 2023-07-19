@@ -15,7 +15,7 @@
 import React from "react";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withResourceWorkspace} from "../../../contexts/ResourceWorkspaceContext";
 import Icon from "../../../../shared/components/Icons/Icon";
 import {withDialog} from "../../../contexts/DialogContext";
@@ -24,6 +24,9 @@ import EditResource from "../EditResource/EditResource";
 import ShareDialog from "../../Share/ShareDialog";
 import ExportResources from "../ExportResources/ExportResources";
 import {Trans, withTranslation} from "react-i18next";
+import ClipBoard from '../../../../shared/lib/Browser/clipBoard';
+import {withRbac} from "../../../../shared/context/Rbac/RbacContext";
+import {uiActions} from "../../../../shared/services/rbacs/uiActionEnumeration";
 
 /**
  * This component allows the current user to add a new comment on a resource
@@ -165,7 +168,7 @@ class DisplayResourcesWorkspaceMenu extends React.Component {
     this.handleCloseMoreMenu();
     const baseUrl = this.props.context.userSettings.getTrustedDomain();
     const permalink = `${baseUrl}/app/passwords/view/${this.selectedResources[0].id}`;
-    await this.props.context.port.request("passbolt.clipboard.copy", permalink);
+    await ClipBoard.copy(permalink, this.props.context.port);
     this.displaySuccessNotification(this.translate("The permalink has been copied to clipboard"));
   }
 
@@ -174,7 +177,7 @@ class DisplayResourcesWorkspaceMenu extends React.Component {
    */
   async handleCopyUsernameClickEvent() {
     this.handleCloseMoreMenu();
-    await this.props.context.port.request("passbolt.clipboard.copy", this.selectedResources[0].username);
+    await ClipBoard.copy(this.selectedResources[0].username, this.props.context.port);
     this.displaySuccessNotification(this.translate("The username has been copied to clipboard"));
   }
 
@@ -190,10 +193,10 @@ class DisplayResourcesWorkspaceMenu extends React.Component {
       throw new TypeError(this.translate("The password is empty."));
     }
     if (typeof plaintextDto === 'string') {
-      await this.props.context.port.request("passbolt.clipboard.copy", plaintextDto);
+      await ClipBoard.copy(plaintextDto, this.props.context.port);
     } else {
       if (Object.prototype.hasOwnProperty.call(plaintextDto, 'password')) {
-        await this.props.context.port.request("passbolt.clipboard.copy", plaintextDto.password);
+        await ClipBoard.copy(plaintextDto.password, this.props.context.port);
       } else {
         throw new TypeError(this.translate("The password field is not defined."));
       }
@@ -289,10 +292,12 @@ class DisplayResourcesWorkspaceMenu extends React.Component {
   }
 
   /**
-   * Returns true if the user can export
+   * Check if the user can export.
+   * @return {boolean}
    */
   canExport() {
-    return this.hasResourceSelected() && this.props.context.siteSettings.canIUse("export");
+    return this.props.context.siteSettings.canIUse("export")
+      && this.props.rbacContext.canIUseUiAction(uiActions.RESOURCES_EXPORT);
   }
 
   /**
@@ -357,80 +362,95 @@ class DisplayResourcesWorkspaceMenu extends React.Component {
    * @returns {JSX}
    */
   render() {
+    const canCopySecret = this.props.rbacContext.canIUseUiAction(uiActions.SECRETS_COPY);
+    const canViewShare = this.props.rbacContext.canIUseUiAction(uiActions.SHARE_VIEW_LIST);
+
     return (
       <div className="col2_3 actions-wrapper">
         <div className="actions">
           <ul>
-            <li id="password_action">
-              <a className={`button ${this.hasOneResourceSelected() ? "" : "disabled"}`}
-                onClick={this.handleCopySecretClickEvent}>
-                <Icon name="copy-to-clipboard"/>
-                <span><Trans>Copy</Trans></span>
-              </a>
-            </li>
+            {canCopySecret &&
+              <li id="password_action">
+                <button type="button" disabled={!this.hasOneResourceSelected()}
+                  onClick={this.handleCopySecretClickEvent}>
+                  <Icon name="copy-to-clipboard"/>
+                  <span><Trans>Copy</Trans></span>
+                </button>
+              </li>
+            }
             <li id="edit_action">
-              <a className={`button ${this.hasOneResourceSelected() && this.canUpdate() ? "" : "disabled"}`}
+              <button type="button" disabled={!this.hasOneResourceSelected() || !this.canUpdate()}
                 onClick={this.handleEditClickEvent}>
                 <Icon name="edit"/>
                 <span><Trans>Edit</Trans></span>
-              </a>
+              </button>
             </li>
-            <li id="share_action">
-              <a className={`button ${this.hasResourceSelected() && this.canShare() ? "" : "disabled"}`}
-                onClick={this.handleShareClickEvent}>
-                <Icon name="share"/>
-                <span><Trans>Share</Trans></span>
-              </a>
-            </li>
-            <li id="export_action">
-              <a
-                className={`button ${this.hasResourceSelected() && this.canExport() ? "" : "disabled"}`}
-                onClick={this.handleExportClickEvent}>
-                <Icon name="download"/>
-                <span><Trans>Export</Trans></span>
-              </a>
-            </li>
+            {canViewShare &&
+              <li id="share_action">
+                <button type="button" disabled={!this.hasResourceSelected() || !this.canShare()}
+                  onClick={this.handleShareClickEvent}>
+                  <Icon name="share"/>
+                  <span><Trans>Share</Trans></span>
+                </button>
+              </li>
+            }
+            {this.canExport() &&
+              <li id="export_action">
+                <button
+                  type="button"
+                  disabled={!this.hasResourceSelected()}
+                  onClick={this.handleExportClickEvent}>
+                  <Icon name="download"/>
+                  <span><Trans>Export</Trans></span>
+                </button>
+              </li>
+            }
             <li>
               <div className="dropdown" ref={this.moreMenuRef}>
-                <a className={`button more ${this.state.moreMenuOpen ? "open" : ""} ${this.hasMoreActionAllowed() ? "" : "disabled"}`}
+                <button type="button" className={`more ${this.state.moreMenuOpen ? "open" : ""}`}
+                  disabled={!this.hasMoreActionAllowed()}
                   onClick={this.handleMoreClickEvent}>
                   <span><Trans>More</Trans></span>
                   <Icon name="caret-down"/>
-                </a>
+                </button>
                 <ul className={`dropdown-content menu right ${this.state.moreMenuOpen ? "visible" : ""}`}>
                   <li id="username_action">
                     <div className="row">
                       <div className="main-cell-wrapper">
                         <div className="main-cell">
-                          <a
-                            className={`${this.canCopyUsername() ? "" : "disabled"}`}
+                          <button
+                            type="button"
+                            disabled={!this.canCopyUsername()}
+                            className="link no-border"
                             onClick={this.handleCopyUsernameClickEvent}>
                             <span><Trans>Copy username to clipboard</Trans></span>
-                          </a>
+                          </button>
                         </div>
                       </div>
                     </div>
                   </li>
-                  <li id="secret_action">
-                    <div className="row">
-                      <div className="main-cell-wrapper">
-                        <div className="main-cell">
-                          <a className={`${this.hasOneResourceSelected() ? "" : "disabled"}`}
-                            onClick={this.handleCopySecretClickEvent}>
-                            <span><Trans>Copy password to clipboard</Trans></span>
-                          </a>
+                  {canCopySecret &&
+                    <li id="secret_action">
+                      <div className="row">
+                        <div className="main-cell-wrapper">
+                          <div className="main-cell">
+                            <button type="button" disabled={!this.hasOneResourceSelected()} className="link no-border"
+                              onClick={this.handleCopySecretClickEvent}>
+                              <span><Trans>Copy password to clipboard</Trans></span>
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </li>
+                    </li>
+                  }
                   <li id="delete_action">
                     <div className="row">
                       <div className="main-cell-wrapper">
                         <div className="main-cell">
-                          <a className={`${this.canUpdate() ? "" : "disabled"}`}
+                          <button type="button" disabled={!this.canUpdate()} className="link no-border"
                             onClick={this.handleDeleteClickEvent}>
                             <span><Trans>Delete</Trans></span>
-                          </a>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -439,10 +459,10 @@ class DisplayResourcesWorkspaceMenu extends React.Component {
                     <div className="row">
                       <div className="main-cell-wrapper">
                         <div className="main-cell">
-                          <a className={`${this.hasOneResourceSelected() ? "" : "disabled"}`}
+                          <button type="button" disabled={!this.hasOneResourceSelected()} className="link no-border"
                             onClick={this.handleCopyPermalinkClickEvent}>
                             <span><Trans>Copy permalink to clipboard</Trans></span>
-                          </a>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -455,11 +475,11 @@ class DisplayResourcesWorkspaceMenu extends React.Component {
         <div className="actions secondary">
           <ul>
             <li>
-              <a className={`button button-toggle info ${this.hasLockDetail() ? "selected" : ""}`}
+              <button type="button" className={`button-toggle info ${this.hasLockDetail() ? "selected" : ""}`}
                 onClick={this.handleViewDetailClickEvent}>
                 <Icon name="info-circle" big={true}/>
                 <span className="visuallyhidden"><Trans>View detail</Trans></span>
-              </a>
+              </button>
             </li>
           </ul>
         </div>
@@ -470,10 +490,11 @@ class DisplayResourcesWorkspaceMenu extends React.Component {
 
 DisplayResourcesWorkspaceMenu.propTypes = {
   context: PropTypes.any, // The application context
+  rbacContext: PropTypes.any, // The role based access control context
   actionFeedbackContext: PropTypes.any, // The action feedback context
   resourceWorkspaceContext: PropTypes.any, // the resource workspace context
   dialogContext: PropTypes.any, // the dialog context
   t: PropTypes.func, // The translation function
 };
 
-export default withAppContext(withDialog(withResourceWorkspace(withActionFeedback(withTranslation('common')(DisplayResourcesWorkspaceMenu)))));
+export default withAppContext(withRbac(withDialog(withResourceWorkspace(withActionFeedback(withTranslation('common')(DisplayResourcesWorkspaceMenu))))));

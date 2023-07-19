@@ -14,7 +14,7 @@
 
 import * as React from "react";
 import PropTypes from "prop-types";
-import {withAppContext} from "./AppContext";
+import {withAppContext} from "../../shared/context/AppContext/AppContext";
 import {withRouter} from "react-router-dom";
 import {withActionFeedback} from "./ActionFeedbackContext";
 import {withLoading} from "./LoadingContext";
@@ -793,7 +793,9 @@ export class ResourceWorkspaceContextProvider extends React.Component {
   async unselectUnknownResources() {
     const matchId = selectedResource => resource => resource.id === selectedResource.id;
     const matchSelectedResource = selectedResource => this.state.selectedResources.some(matchId(selectedResource));
-    const selectedResources = this.resources.filter(matchSelectedResource);
+    const resources = this.resources.filter(matchSelectedResource);
+    const matchFilteredResources = resource => this.state.filteredResources.includes(resource);
+    const selectedResources = resources.filter(matchFilteredResources);
     await this.setState({selectedResources});
   }
 

@@ -21,7 +21,7 @@ import Icon from "../../../../shared/components/Icons/Icon";
 import {Trans, withTranslation} from "react-i18next";
 import {withDrag} from "../../../contexts/DragContext";
 import {withDialog} from "../../../contexts/DialogContext";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import NotifyError from "../../Common/Error/NotifyError/NotifyError";
 
 class FilterResourcesByTagsList extends React.Component {
@@ -325,14 +325,14 @@ class FilterResourcesByTagsList extends React.Component {
                   onClick={() => this.handleOnClickTag(tag)}
                   onContextMenu={event => this.handleContextualMenuEvent(event, tag)}>
                   <div className="main-cell">
-                    <a title={tag.slug}><span className="ellipsis tag-name">{tag.slug}</span></a>
+                    <button className="link no-border" type="button" title={tag.slug}><span className="ellipsis tag-name">{tag.slug}</span></button>
                   </div>
                 </div>
                 {!tag.is_shared &&
                 <div className="dropdown right-cell more-ctrl">
-                  <a className={`button ${this.state.moreMenuOpenTagId === tag.id ? "open" : ""}`} onClick={event => this.handleMoreClickEvent(event, tag)}>
+                  <button type="button" className={`${this.state.moreMenuOpenTagId === tag.id ? "open" : ""}`} onClick={event => this.handleMoreClickEvent(event, tag)}>
                     <Icon name="3-dots-h"/>
-                  </a>
+                  </button>
                 </div>
                 }
               </div>

@@ -16,10 +16,11 @@ import React from "react";
 import PropTypes from "prop-types";
 import Icon from "../../../../shared/components/Icons/Icon";
 import {withUserWorkspace} from "../../../contexts/UserWorkspaceContext";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import {DateTime} from "luxon";
 import {Trans, withTranslation} from "react-i18next";
+import ClipBoard from '../../../../shared/lib/Browser/clipBoard';
 
 /**
  * This component displays the user details about public key
@@ -179,7 +180,7 @@ class DisplayUserDetailsPublicKey extends React.Component {
    */
   async handlePublicKeyCopy() {
     const armoredKey = this.state.gpgkeyInfo.armoredKey;
-    await this.props.context.port.request("passbolt.clipboard.copy", armoredKey);
+    await ClipBoard.copy(armoredKey, this.props.context.port);
     this.props.actionFeedbackContext.displaySuccess(this.translate("The public key has been copied to clipboard"));
   }
 
@@ -202,11 +203,11 @@ class DisplayUserDetailsPublicKey extends React.Component {
       <div className={`key-information accordion sidebar-section ${this.state.open ? "" : "closed"}`}>
         <div className="accordion-header">
           <h4>
-            <a onClick={this.handleTitleClicked} role="button">
+            <button type="button" onClick={this.handleTitleClicked} className="link no-border">
               <Trans>Public key</Trans>
               {this.state.open && <Icon name="caret-down"/>}
               {!this.state.open && <Icon name="caret-right"/>}
-            </a>
+            </button>
           </h4>
         </div>
         <div className="accordion-content">
@@ -239,11 +240,12 @@ class DisplayUserDetailsPublicKey extends React.Component {
             <li className="key">
               <span className="label"><Trans>Public key</Trans></span>
               <span className="value">
-                <a
-                  className="button button-icon copy-public-key"
+                <button
+                  type="button"
+                  className="button-icon copy-public-key"
                   onClick={this.handlePublicKeyCopy}>
                   <Icon name="copy-to-clipboard"/>
-                </a>
+                </button>
               </span>
             </li>
             <li className="gpgkey">

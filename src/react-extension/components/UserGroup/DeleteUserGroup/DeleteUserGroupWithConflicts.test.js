@@ -114,7 +114,7 @@ describe("See Delete Group Dialog", () => {
       page.displayDeleteGroupWithConflictsDialog.clickWithoutWaitFor(page.displayDeleteGroupWithConflictsDialog.saveButton);
       // API calls are made on submit, wait they are resolved.
       await waitFor(() => {
-        expect(page.displayDeleteGroupWithConflictsDialog.cancelButtonDisabled).not.toBeNull();
+        expect(page.displayDeleteGroupWithConflictsDialog.hasCancelButtonDisabled()).toBeTruthy();
         expect(page.displayDeleteGroupWithConflictsDialog.saveButton.getAttribute("disabled")).not.toBeNull();
         expect(page.displayDeleteGroupWithConflictsDialog.saveButtonProcessing).not.toBeNull();
         updateResolve();
@@ -155,6 +155,10 @@ describe("See Delete Group Dialog", () => {
       // Throw general error message
       expect(page.displayDeleteGroupWithConflictsDialog.errorDialog).not.toBeNull();
       expect(page.displayDeleteGroupWithConflictsDialog.errorDialogMessage).not.toBeNull();
+    });
+
+    it('As LU I want to see a long  resource/tag/folders name fitting its delete dialog', async() => {
+      expect(page.displayDeleteGroupWithConflictsDialog.tagName.classList.contains("dialog-variable")).toBeTruthy();
     });
   });
 });

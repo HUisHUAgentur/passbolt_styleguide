@@ -16,7 +16,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import Icon from "../../../../shared/components/Icons/Icon";
 import {withUserWorkspace} from "../../../contexts/UserWorkspaceContext";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {Trans, withTranslation} from "react-i18next";
 import {DateTime} from "luxon";
 
@@ -96,22 +96,22 @@ class DisplayUserGroupDetailsInformation extends React.Component {
       <div className={`detailed-information accordion sidebar-section ${this.state.open ? "" : "closed"}`}>
         <div className="accordion-header">
           <h4>
-            <a onClick={this.handleTitleClicked}  role="button">
+            <button type="button" className="link no-border" onClick={this.handleTitleClicked}>
               <Trans>Information</Trans>
               {this.state.open && <Icon name="caret-down"/>}
               {!this.state.open && <Icon name="caret-right"/>}
-            </a>
+            </button>
           </h4>
         </div>
         <div className="accordion-content">
           <ul>
             <li className="created">
               <span className="label"><Trans>Created</Trans></span>
-              <span className="value">{created}</span>
+              <span className="value" title={this.group.created}>{created}</span>
             </li>
             <li className="modified">
               <span className="label"><Trans>Modified</Trans></span>
-              <span className="value">{modified}</span>
+              <span className="value" title={this.group.modified}>{modified}</span>
             </li>
             <li className="modified-by">
               <span className="label"><Trans>Modified by</Trans></span>

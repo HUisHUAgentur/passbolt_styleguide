@@ -17,7 +17,7 @@ import {fireEvent, render, waitFor} from "@testing-library/react";
 import React from "react";
 import ManageDialogs from "../../Common/Dialog/ManageDialogs/ManageDialogs";
 import DialogContextProvider from "../../../contexts/DialogContext";
-import AppContext from "../../../contexts/AppContext";
+import AppContext from "../../../../shared/context/AppContext/AppContext";
 import MockTranslationProvider from "../../../test/mock/components/Internationalisation/MockTranslationProvider";
 import DeleteUserGroup from "./DeleteUserGroup";
 
@@ -107,10 +107,10 @@ class DeleteGroupDialogPageObject {
   }
 
   /**
-   * Returns the cancel button disabled elements
+   * Returns true if the cancel button is disabled elements
    */
-  get cancelButtonDisabled() {
-    return this._container.querySelector('.submit-wrapper .cancel.disabled');
+  hasCancelButtonDisabled() {
+    return this.cancelButton.hasAttribute("disabled");
   }
 
   /**
@@ -131,6 +131,13 @@ class DeleteGroupDialogPageObject {
    * Returns the user first name, last name, (username)
    */
   get groupName() {
+    return this._container.querySelector('.form-content p strong');
+  }
+
+  /**
+   * Returns the tag name input element
+   */
+  get tagName() {
     return this._container.querySelector('.form-content p strong');
   }
 

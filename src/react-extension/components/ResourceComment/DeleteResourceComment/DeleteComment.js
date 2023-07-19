@@ -14,7 +14,7 @@
 
 import React from "react";
 import {Trans, withTranslation} from "react-i18next";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import Icon from "../../../../shared/components/Icons/Icon";
 import PropTypes from "prop-types";
 import {withDialog} from "../../../contexts/DialogContext";
@@ -50,12 +50,12 @@ class DeleteComment extends React.Component {
 
   render() {
     return (
-      <a className="delete-comment button button-transparent" onClick={this.delete}>
+      <button type="button" className="delete-comment button-transparent" onClick={this.delete}>
         <span className="svg-icon">
           <Icon name="trash"/>
         </span>
         <span className="visuallyhidden"><Trans>Delete</Trans></span>
-      </a>
+      </button>
     );
   }
 }

@@ -58,8 +58,11 @@
 
             .accordion {
               margin: 0;
+              &.error-details {
+                margin: 1.6rem;
+              }
               .accordion-header {
-                a {
+                button {
                   display: flex;
                   align-items: center;
                   border: none;
@@ -103,7 +106,11 @@
                   margin-top: 0;
                 }
 
-                label, a {
+                button {
+                    font-weight: bold;
+                }
+
+                label, button {
                   font-size: 1.8rem;
                   line-height: 2.5rem;
                 }

@@ -14,7 +14,7 @@
 import React, {Component} from "react";
 import PropTypes from "prop-types";
 import {Trans, withTranslation} from "react-i18next";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {
   AuthenticationRecoverWorkflowStates,
   withAuthenticationRecoverContext
@@ -104,6 +104,11 @@ class RecoverAuthentication extends Component {
       case AuthenticationRecoverWorkflowStates.UNEXPECTED_ERROR:
         return <DisplayUnexpectedError
           error={this.props.authenticationRecoverContext.error}
+        />;
+      case AuthenticationRecoverWorkflowStates.RETRY_RECOVER:
+        return <DisplayUnexpectedError
+          title={<Trans>Time is up</Trans>}
+          message={<><Trans>You took too long to recover your account.</Trans> <Trans>Please try again.</Trans></>}
         />;
       case AuthenticationRecoverWorkflowStates.LOADING:
         return <LoadingSpinner/>;

@@ -14,7 +14,7 @@
 import React, {Component} from "react";
 import ReactList from "react-list";
 import PropTypes from "prop-types";
-import {withAppContext} from "../../../contexts/AppContext";
+import {withAppContext} from "../../../../shared/context/AppContext/AppContext";
 import {withActionFeedback} from "../../../contexts/ActionFeedbackContext";
 import {withDialog} from "../../../contexts/DialogContext";
 import DialogWrapper from "../../Common/Dialog/DialogWrapper/DialogWrapper";
@@ -27,6 +27,10 @@ import {withRouter} from "react-router-dom";
 import {Trans, withTranslation} from "react-i18next";
 import SharePermissionItemSkeleton from "../../Share/SharePermissionItemSkeleton";
 import EditUserGroupItem from "./EditUserGroupItem";
+import {maxSizeValidation} from '../../../lib/Error/InputValidator';
+import Icon from "../../../../shared/components/Icons/Icon";
+import {RESOURCE_GROUP_NAME_MAX_LENGTH} from "../../../../shared/constants/inputs.const";
+
 
 /**
  * This component allows to edit an user group
@@ -57,6 +61,7 @@ class EditUserGroup extends Component {
         loading: true // True if the component is in a loading mode
       },
       errors: {},
+      nameWarning: "",
       validation: {
         hasAlreadyBeenValidated: false // True when the form has already been submitted
       }
@@ -398,6 +403,9 @@ class EditUserGroup extends Component {
     this.setState({groupToEdit: Object.assign({}, this.state.groupToEdit, {name})});
     if (this.state.validation.hasAlreadyBeenValidated) {
       this.validateName();
+    } else {
+      const nameWarning = maxSizeValidation(name, RESOURCE_GROUP_NAME_MAX_LENGTH, this.translate);
+      this.setState({nameWarning});
     }
   }
 
@@ -728,6 +736,7 @@ class EditUserGroup extends Component {
               <label htmlFor="js_field_name"><Trans>Group name</Trans></label>
               <input
                 id="group-name-input"
+                aria-required={true}
                 ref={this.references.name}
                 value={this.state.groupToEdit.name}
                 maxLength="50"
@@ -745,10 +754,17 @@ class EditUserGroup extends Component {
                 <Trans>The group name already exists.</Trans>
               </div>
               }
+              {this.state.nameWarning &&
+                (<div className="name warning-message">
+                  <strong><Trans>Warning:</Trans></strong> {this.state.nameWarning}
+                </div>)
+              }
             </div>
 
             <div className="input required">
-              <label><Trans>Group members</Trans></label>
+              <label><Trans>Group members</Trans>{this.state.nameWarning &&
+                  <Icon name="exclamation"/>
+              }</label>
             </div>
           </div>
 
